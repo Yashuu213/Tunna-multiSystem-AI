@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuuna | Advanced AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Optional for icons -->
+</head>
+
+<body>
+
+    <div class="grid-bg"></div>
+
+    <div class="container">
+
+        <header>
+            <h1>TUUNA</h1>
+            <div id="status" class="status-badge">System Online</div>
+        </header>
+
+        <div class="core-wrapper">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div id="orb" class="core"></div>
+        </div>
+
+        <div class="chat-panel">
+            <div id="chatLog" class="chat-log">
+                <div class="chat-bubble system">Greetings. I am Tuuna. How can I assist you today?</div>
+            </div>
+        </div>
+
+        <div class="control-bar">
+
+            <select id="voiceSelect" onchange="testVoice()">
+                <option value="">Loading Voices...</option>
+            </select>
+
+            <button id="startBtn" class="btn primary" onclick="toggleListening()">Start Listening</button>
+            <button class="btn" onclick="toggleHelp()">Commands</button>
+
+            <div class="input-group">
+                <input type="text" id="manualInput" placeholder="Type command...">
+                <button class="btn" style="padding: 8px 12px;" onclick="sendManualCommand()">></button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal">
+            <button class="modal-close" onclick="toggleHelp()">&times;</button>
+            <h2>Voice Commands</h2>
+            <div style="text-align: left; line-height: 1.8; color: #ddd;">
+                <p><strong>System:</strong> "Shutdown", "Restart", "Sleep", "Battery status", "Empty recycle bin"</p>
+                <p><strong>Apps:</strong> "Open [app name]" (e.g. calculator, notepad, chrome)</p>
+                <p><strong>Web:</strong> "Open google", "Search for [query]"</p>
+                <p><strong>Media:</strong> "Play [song] on youtube"</p>
+                <p><strong>Input:</strong> "Type [text]", "Press enter", "Copy", "Paste"</p>
+                <p><strong>Mouse:</strong> "Move mouse [direction]", "Click", "Scroll up/down"</p>
+            </div>
+            <br>
+            <button class="btn primary" style="width:100%" onclick="toggleHelp()">Close</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
