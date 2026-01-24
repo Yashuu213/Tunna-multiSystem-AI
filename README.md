@@ -35,7 +35,7 @@
 ---
 
 <div align="center">
-  <img src="https://media.giphy.com/media/XxR970T8jE9sZq9lF3/giphy.gif" width="100%" alt="Insane Cyberpunk Chaos" />
+  <img src="https://media.giphy.com/media/LMcB8XUXrhMjq/giphy.gif" width="100%" alt="Cyberpunk Interface" />
   <br>
   <i>"I do not obey commands. I execute protocols."</i>
 </div>
@@ -146,14 +146,7 @@ python server.py
 
 ---
 
-## 📊 SYSTEM METRICS
 
-<div align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=Yashuu213&show_icons=true&theme=radical&hide_border=true&bg_color=000000" alt="GitHub Stats" />
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Yashuu213&layout=compact&theme=radical&hide_border=true&bg_color=000000" alt="Top Langs" />
-</div>
-
----
 
 <div align="center">
   <br>
