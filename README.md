@@ -35,7 +35,7 @@
 ---
 
 <div align="center">
-  <img src="https://media.giphy.com/media/LMcB8XUXrhMjq/giphy.gif" width="100%" alt="Cyberpunk Interface" />
+  <img src="https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif" width="100%" alt="Cyberpunk Glitch Interface" />
   <br>
   <i>"I do not obey commands. I execute protocols."</i>
 </div>
