@@ -49,10 +49,8 @@ It tears through the fabric of your Operating System (**Windows, Mac, or Linux**
 
 ---
 
-# � DOWNLOADS
-
-<div align="center">
-<h3>CLICK YOUR OS TO ACQUIRE THE WEAPON</h3>
+### 🟢 OPTION 1: THE EXECUTABLE (Direct Download)
+*Click your OS logo below to acquire the weapon.*
 
 | **PLATFORM** | **STATUS** | **DIRECT LINK** |
 | :---: | :---: | :---: |
@@ -60,45 +58,68 @@ It tears through the fabric of your Operating System (**Windows, Mac, or Linux**
 | <img src="https://img.icons8.com/color/48/000000/mac-os.png" width="40"/><br>**MACOS** | 🟢 **ONLINE** | [**📥 DOWNLOAD .APP**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-macOS.zip) |
 | <img src="https://img.icons8.com/color/48/000000/linux--v1.png" width="40"/><br>**LINUX** | 🟢 **ONLINE** | [**📥 DOWNLOAD BINARY**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-Linux.zip) |
 
-*(Download failed? Check the [Releases Page](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases)*
-</div>
+#### ⚠️ ACTIVATION PROTOCOLS (READ CAREFULLY)
+
+<details>
+<summary><b>🪟 WINDOWS USERS</b></summary>
+<blockquote>
+1. Download <b>Tuuna-Agent-Windows.zip</b>.<br>
+2. Right-Click > <b>Extract All</b>.<br>
+3. Open folder and double-click <b>Tuuna_AI_Agent.exe</b>.<br>
+4. <i>If Windows Defense blocks it: Click "More Info" > "Run Anyway".</i> (We are too powerful for them).
+</blockquote>
+</details>
+
+<details>
+<summary><b>🍎 MAC USERS</b></summary>
+<blockquote>
+1. Download <b>Tuuna-Agent-macOS.zip</b>.<br>
+2. Double-click to unzip.<br>
+3. <b>Right-Click</b> the App > Select <b>Open</b> (This bypasses Apple's Gatekeeper).<br>
+4. Grant Permissions (Accessibility/Screen Recording) when asked. Tuuna needs eyes to see.
+</blockquote>
+</details>
+
+<details>
+<summary><b>🐧 LINUX USERS</b></summary>
+<blockquote>
+1. Download <b>Tuuna-Agent-Linux.zip</b>.<br>
+2. Extract the archive.<br>
+3. Open Terminal in that folder.<br>
+4. Run: <code>chmod +x Tuuna_AI_Agent</code> then <code>./Tuuna_AI_Agent</code>.
+</blockquote>
+</details>
+
+### 🟡 OPTION 2: THE SOURCE (Dev Mode)
+*For the architects and hackers.*
+
+```bash
+# 1. Clone the Virus
+git clone https://github.com/Yashuu213/Tuuna-Ai-Agent.git
+cd Tuuna-Ai-Agent
+
+# 2. Infect Dependencies
+pip install -r requirements.txt
+
+# 3. Awaken the Beast
+python server.py
+```
 
 ---
 
-# � "BEAST MODE" FEATURES
+## 💀 NEW: "BEAST MODE" FEATURES
 
-<table>
-  <tr>
-    <td width="300px" align="center">
-      <br>
-      <img src="https://media.giphy.com/media/L1R1TVI9svk76/giphy.gif" width="200px" alt="Hacker Terminal">
-    </td>
-    <td>
-      <h3>🕶️ NATIVE APP EXPERIENCE</h3>
-      <p>Tuuna no longer lives in a cluttered browser tab. It launches in <b>App Mode</b>:</p>
-      <ul>
-        <li><b>Frameless Window:</b> No address bar. No distractions.</li>
-        <li><b>Pure UI:</b> Just you and the Neural Interface.</li>
-        <li><b>Fluid Performance:</b> Zero lag, instant response.</li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td width="300px" align="center">
-      <br>
-       <img src="https://media.giphy.com/media/YQitE4YNQNahy/giphy.gif" width="200px" alt="Matrix Security">
-    </td>
-    <td>
-      <h3>🛡️ CYBERPUNK SENTRY (Smart Auth)</h3>
-      <p>The system protects itself from failure.</p>
-      <ul>
-        <li><b>Auto-Detection:</b> If your API Key dies or Quota is exceeded.</li>
-        <li><b>Self-Healing:</b> A "Matrix-Style" popup appears instantly.</li>
-        <li><b>Zero-Downtime:</b> Input new key -> System resumes operation immediately.</li>
-      </ul>
-    </td>
-  </tr>
-</table>
+### 🕶️ NATIVE APP EXPERIENCE
+Tuuna no longer lives in a cluttered browser tab. It launches in **App Mode**:
+-   **Frameless Window**: No address bar. No distractions.
+-   **Pure UI**: Just you and the Neural Interface.
+-   **Cross-Platform**: Looks native on Windows, Mac, and Ubunutu.
+
+### 🛡️ CYBERPUNK SENTRY (Smart Auth)
+The system protects itself from failure.
+-   **Auto-Detection**: If your API Key dies or Quota is exceeded.
+-   **Self-Healing**: A "Matrix-Style" popup appears instantly.
+-   **Zero-Downtime**: Input new key -> System resumes operation immediately.
 
 ---
 
@@ -137,6 +158,30 @@ It tears through the fabric of your Operating System (**Windows, Mac, or Linux**
 | **THE EXECUTOR** | *"Calculate/Convert/Scrape"* | Writes and runs dynamic Python scripts in a safe sandbox. |
 | **AUTO-HEAL** | *Automatic* | If a script fails, it debugs itself, installs missing modules, and retries. |
 | **THE ARCHITECT** | *"Build a portfolio"* | Generates full project structures (HTML/CSS/JS) and launches VS Code. |
+
+</details>
+
+<details>
+<summary><h2>🧬 LEVEL 4: SELF-PRESERVATION (Immunity)</h2></summary>
+<br>
+
+| **PROTOCOL** | **TRIGGER** | **EFFECT** |
+| :--- | :--- | :--- |
+| **BUILD-AGNOSTIC** | *GitHub Actions* | The code realizes it's being compiled and adjusts logic for EXE/Binary environments. |
+| **KEY REGENERATION** | *Runtime Error* | If auth fails, the GUI detaches from the CLI to demand fresh credentials. |
+| **PLATFORM SHIFT** | *OS Detection* | Adapts commands (LS vs DIR, OPEN vs START) based on the host OS. |
+
+</details>
+
+<details>
+<summary><h2>🌌 LEVEL 5: THE SINGULARITY (Future State)</h2></summary>
+<br>
+
+| **PROTOCOL** | **TRIGGER** | **EFFECT** |
+| :--- | :--- | :--- |
+| **HIVE MIND** | *Planned* | Multiple Tuuna Agents communicating over local network. |
+| **FULL ROOT ACCESS** | *Planned* | System-level admin tasks without user prompt (Dangerous). |
+| **VOICE CLONING** | *Planned* | Tuuna speaks with your voice using real-time synthesis. |
 
 </details>
 
