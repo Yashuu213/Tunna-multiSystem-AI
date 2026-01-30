@@ -2,7 +2,7 @@
 <div align="center">
   
   <a href="https://github.com/Yashuu213/Tuuna-Ai-Agent">
-    <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=900&size=60&pause=1000&color=00FF41&center=true&vCenter=true&width=1000&lines=TUUNA+AGENT+v1.0;SYSTEM+BREACH+CONFIRMED;DEPLOYING+ON+ALL+PLATFORMS;CONTROL+IS+AN+ILLUSION;THE+FUTURE+IS+AUTOMATED" alt="Typing SVG" />
+    <img src="static/assets/banner.png" width="100%" alt="TUUNA AI BANNER" />
   </a>
 
   <br />
