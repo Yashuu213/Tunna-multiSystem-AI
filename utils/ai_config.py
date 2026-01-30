@@ -87,10 +87,17 @@ def generate_content_with_retry(content_payload):
                     print(f"⚠️ QUOTA HIT: Key #{key_index+1} / {model_name}. Trying next...")
                     time.sleep(1) # Backoff slightly
                     continue 
+                elif "403" in error_str or "key" in error_str.lower():
+                     # If key is bad, don't just skip, flag it.
+                     pass
                 else:
                     print(f"⚠️ Error on Key #{key_index+1} / {model_name}: {error_str}")
                     time.sleep(0.5)
 
     print("❌ CRITICAL: ALL MODELS & KEYS EXHAUSTED.")
     print(f"❌ LAST ERROR: {last_error}")
+    
+    if "429" in last_error or "403" in last_error or "key" in last_error.lower():
+        return "SYSTEM_ALERT_AUTH_ERROR"
+        
     return "System Alert: All AI models are currently busy. Please wait 1 minute and try again."

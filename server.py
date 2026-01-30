@@ -56,6 +56,108 @@ from utils.beast_mode import (
 )
 
 
+
+
+# --- API KEY CHECK (CYBERPUNK UI) ---
+def ensure_api_key(force_update=False):
+    """Checks for API key, prompts user with a BEAST MODE UI if missing or forced."""
+    from dotenv import load_dotenv, set_key
+    import tkinter as tk
+    from tkinter import messagebox
+    import webbrowser
+    
+    env_path = ".env"
+    load_dotenv(env_path)
+    
+    if os.getenv("GOOGLE_API_KEY") and not force_update:
+        return
+
+    print("⚠️ API Key Issue! Launching Neural Interface...")
+
+    # --- THEME CONFIG ---
+    BG_COLOR = "#0D0D0D"       # Pitch Black
+    ACCENT_COLOR = "#00FF41"   # Matrix Green
+    TEXT_COLOR = "#FFFFFF"     # White
+    WARN_COLOR = "#FF0055"     # Cyber Red
+    FONT_MONO = ("Consolas", 10)
+    FONT_HEAD = ("Impact", 20)
+    
+    UI_TITLE = "⚠ SYSTEM AUTHENTICATION REQUIRED ⚠"
+    UI_DESC = "NEURAL LINK DISCONNECTED.\nINSERT 'GEMINI API KEY' TO RESTORE FUNCTIONS."
+    UI_FG = ACCENT_COLOR
+    
+    if force_update:
+        UI_TITLE = "⚠ CRITICAL ERROR: QUOTA EXCEEDED ⚠"
+        UI_DESC = "CURRENT KEY EXHAUSTED OR INVALID.\nINPUT NEW KEY TO RESUME OPERATIONS."
+        UI_FG = WARN_COLOR
+
+    # --- GUI LOGIC ---
+    root = tk.Tk()
+    root.title("Tuuna // SECURITY CHECK")
+    root.configure(bg=BG_COLOR)
+    root.overrideredirect(True) # Frameless Window
+    root.attributes("-topmost", True)
+    
+    # Check screen size for centering
+    w, h = 600, 350
+    ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
+    x, y = (ws/2) - (w/2), (hs/2) - (h/2)
+    root.geometry(f'{w}x{h}+{int(x)}+{int(y)}')
+
+    # Border
+    frame = tk.Frame(root, bg=BG_COLOR, highlightbackground=UI_FG, highlightthickness=2)
+    frame.pack(fill="both", expand=True)
+
+    # Header
+    lbl_title = tk.Label(frame, text=UI_TITLE, font=FONT_HEAD, fg=WARN_COLOR, bg=BG_COLOR)
+    lbl_title.pack(pady=(30, 10))
+
+    lbl_desc = tk.Label(frame, text=UI_DESC, font=FONT_MONO, fg=UI_FG, bg=BG_COLOR, justify="center")
+    lbl_desc.pack(pady=10)
+
+    # Input
+    entry = tk.Entry(frame, width=50, font=("Consolas", 12), bg="#1a1a1a", fg=UI_FG, insertbackground=UI_FG, relief="flat")
+    entry.pack(pady=10, ipady=5)
+    entry.focus()
+
+    # Link
+    def get_key(e): 
+        webbrowser.open("https://aistudio.google.com/app/apikey")
+    
+    lbl_link = tk.Label(frame, text="[ GET KEY FROM GOOGLE ]", font=("Consolas", 9, "underline"), fg="#888", bg=BG_COLOR, cursor="hand2")
+    lbl_link.pack(pady=5)
+    lbl_link.bind("<Button-1>", get_key)
+
+    # Submit Logic
+    def submit():
+        key = entry.get().strip()
+        if key.startswith("AIza"):
+            with open(env_path, "w") as f:
+                f.write(f"GOOGLE_API_KEY={key}\n")
+            os.environ["GOOGLE_API_KEY"] = key
+            
+            # Re-init client if needed (handled by next request)
+            root.destroy()
+        else:
+            lbl_title.config(text="ACCESS DENIED: INVALID KEY PATTERN", fg=WARN_COLOR)
+
+    # Button
+    btn = tk.Button(frame, text=">> INITIALIZE PROTOCOL <<", font=("Arial", 10, "bold"), bg=UI_FG, fg="black", activebackground="white", activeforeground="black", relief="flat", command=submit, padx=20, pady=10)
+    btn.pack(pady=20)
+    
+    # Exit
+    def close(): 
+        if force_update: root.destroy() # Just close window, don't kill app if updating
+        else: sys.exit(0)
+        
+    btn_close = tk.Button(frame, text="X", font=("Arial", 12), bg=BG_COLOR, fg="#333", relief="flat", command=close)
+    btn_close.place(x=570, y=5)
+
+    root.mainloop()
+
+# Run Check BEFORE App Starts
+ensure_api_key()
+
 app = Flask(__name__)
 CORS(app)
 
@@ -407,6 +509,16 @@ def handle_command():
     # ASK BRAIN
     actions, response_text = ask_gemini_brain(command, client_image)
 
+    # --- AUTH FAILURE CHECK ---
+    if response_text == "SYSTEM_ALERT_AUTH_ERROR" or (actions and "SYSTEM_ALERT_AUTH_ERROR" in str(actions)):
+        print("🚨 AUTH ERROR DETECTED: Triggering Re-Auth UI...")
+        ensure_api_key(force_update=True)
+        # Retry once with new key
+        from utils.ai_config import API_KEYS, get_all_api_keys
+        import utils.ai_config
+        utils.ai_config.API_KEYS = get_all_api_keys() # Reload keys in config module
+        
+        actions, response_text = ask_gemini_brain(command, client_image) # Retry
     
     if actions:
         execution_result = execute_ai_action(actions)
@@ -441,4 +553,62 @@ if __name__ == '__main__':
         print(f"❌ AI CRITICAL ERROR: {e}")
             
     print("="*50 + "\n")
+
+
+    # --- AUTO-OPEN BROWSER (APP MODE - CROSS PLATFORM) ---
+    import webbrowser
+    import subprocess
+    import platform
+    
+    def open_browser():
+        time.sleep(1.5) # Give Flask a moment to start
+        url = "http://127.0.0.1:5000"
+        
+        opened = False
+        
+        # --- WINDOWS ---
+        if platform.system() == "Windows":
+            chrome_paths = [
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+                r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+            ]
+            for path in chrome_paths:
+                if os.path.exists(path):
+                    try:
+                        subprocess.Popen([path, f"--app={url}"])
+                        opened = True
+                        break
+                    except:
+                        pass
+        
+        # --- MACOS ---
+        elif platform.system() == "Darwin":
+            try:
+                # Chrome App Mode on Mac
+                subprocess.Popen(["open", "-n", "-a", "Google Chrome", "--args", f"--app={url}"])
+                opened = True
+            except:
+                pass
+                
+        # --- LINUX ---
+        elif platform.system() == "Linux":
+            try:
+                # Chrome/Chromium App Mode on Linux
+                subprocess.Popen(["google-chrome", f"--app={url}"]) 
+                opened = True
+            except:
+                try:
+                    subprocess.Popen(["chromium", f"--app={url}"])
+                    opened = True
+                except:
+                    pass
+
+        # Fallback to default browser
+        if not opened:
+            webbrowser.open(url)
+
+    threading.Thread(target=open_browser, daemon=True).start()
+
     app.run(port=5000, debug=True, use_reloader=False)

@@ -4,9 +4,7 @@ pywhatkit
 wikipedia
 pyautogui
 psutil
-winshell
 google-generativeai
-pypiwin32
 gunicorn
 python-dotenv
 Pillow
