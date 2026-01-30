@@ -29,7 +29,6 @@ args = [
 # Windows Specifics
 if os.name == 'nt':
     args.append('--hidden-import=winshell')
-    args.append('--hidden-import=win32api')
     FRAMEWORK_SEP = ';'
 else:
     FRAMEWORK_SEP = ':'
