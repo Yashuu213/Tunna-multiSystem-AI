@@ -1,9 +1,35 @@
+# --- CRASH HANDLER (Must be first) ---
+import sys
+import traceback
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    error_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    # Write to file
+    try:
+        with open("CRASH_LOG.txt", "w") as f:
+            f.write(error_msg)
+    except: pass
+    
+    # Print to console and WAIT
+    print("\n\n" + "="*30)
+    print("❌ CRITICAL ERROR OCCURRED ❌")
+    print("="*30)
+    print(error_msg)
+    print("="*30)
+    input("\nPress ENTER to exit...")
+    sys.exit(1)
+
+sys.excepthook = handle_exception
+
 import os
 import time
 import json
 import pyautogui
 import pywhatkit
-import sys
 import threading
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS

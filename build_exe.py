@@ -24,6 +24,11 @@ args = [
     # Hidden Imports (Critical for Flask/Scipy etc)
     '--hidden-import=flask_cors',
     '--hidden-import=pyautogui',
+    '--hidden-import=engineio',
+    '--hidden-import=socketio',
+    '--hidden-import=cv2',
+    '--hidden-import=numpy',
+    '--hidden-import=PIL',
 ]
 
 # Windows Specifics
