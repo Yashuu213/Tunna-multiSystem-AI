@@ -10,6 +10,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -25,7 +26,9 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-tk python3-dev scrot
+        sudo apt-get install -y python3-tk python3-dev scrot python3-xlib xvfb tcl-dev tk-dev libx11-dev
+
+    - name: Install macOS Dependencies
 
     - name: Install macOS Dependencies
       if: runner.os == 'macOS'
@@ -44,7 +47,13 @@ jobs:
       run: pip install pypiwin32 winshell pywin32
 
     - name: Build with PyInstaller
-      run: python build_exe.py
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          xvfb-run -a python build_exe.py
+        else
+          python build_exe.py
+        fi
+      shell: bash
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4  # Using v4 for better performance
