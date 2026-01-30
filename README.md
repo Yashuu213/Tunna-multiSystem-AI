@@ -1,6 +1,9 @@
 <!-- HEADER & LOGO -->
 <div align="center">
 
+  ![Tuuna AI UI](static\assets\banner.png)
+
+
   <!-- STATUS BADGES -->
   <img src="https://img.shields.io/badge/SYSTEM-ONLINE-00ff00?style=for-the-badge&logo=prometheus&logoColor=black&labelColor=101010">
   <img src="https://img.shields.io/badge/SECURITY-MAXIMUM-ff0055?style=for-the-badge&logo=guards&logoColor=white&labelColor=101010">
