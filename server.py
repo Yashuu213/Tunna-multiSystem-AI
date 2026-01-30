@@ -158,7 +158,19 @@ def ensure_api_key(force_update=False):
 # Run Check BEFORE App Starts
 ensure_api_key()
 
-app = Flask(__name__)
+# --- PYINSTALLER RESOURCE PATH FIX ---
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+app = Flask(__name__, 
+            template_folder=resource_path('templates'),
+            static_folder=resource_path('static'))
 CORS(app)
 
 # --- AI ROUTER ---
