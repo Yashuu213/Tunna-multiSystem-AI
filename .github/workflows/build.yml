@@ -44,14 +44,13 @@ jobs:
       if: runner.os == 'Windows'
       run: pip install pypiwin32 winshell pywin32
 
-    - name: Build with PyInstaller
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          xvfb-run -a python build_exe.py
-        else
-          python build_exe.py
-        fi
-      shell: bash
+    - name: Build with PyInstaller (Linux)
+      if: runner.os == 'Linux'
+      run: xvfb-run -a python build_exe.py
+
+    - name: Build with PyInstaller (Windows/Mac)
+      if: runner.os != 'Linux'
+      run: python build_exe.py
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4  # Using v4 for better performance

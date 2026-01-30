@@ -40,11 +40,10 @@ args.extend([
     f'--add-data=utils{FRAMEWORK_SEP}utils',
 ])
     
-    # Exclude Heavy/Unused Libraries (Optional Optimization)
-    # '--exclude-module=matplotlib', 
-    
-    '--log-level=WARN',
-]
+# Exclude Heavy/Unused Libraries (Optional Optimization)
+# args.append('--exclude-module=matplotlib')
+
+args.append('--log-level=WARN')
 
 # Add Icon if exists
 if os.path.exists(ICON_PATH):
