@@ -1,11 +1,5 @@
 <!-- HEADER & LOGO -->
 <div align="center">
-  
-  <a href="https://github.com/Yashuu213/Tuuna-Ai-Agent">
-    <img src="static\assets\banner.png" width="100%" alt="TUUNA AI BANNER" />
-  </a>
-
-  <br />
 
   <!-- STATUS BADGES -->
   <img src="https://img.shields.io/badge/SYSTEM-ONLINE-00ff00?style=for-the-badge&logo=prometheus&logoColor=black&labelColor=101010">
