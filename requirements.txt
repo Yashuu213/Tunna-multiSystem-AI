@@ -9,4 +9,12 @@ python-dotenv
 Pillow
 pyperclip
 duckduckgo-search
+opencv-python
+numpy
+pywin32; sys_platform == 'win32'
+winshell; sys_platform == 'win32'
+pyinstaller
+python-socketio
+python-engineio
+pillow
 
