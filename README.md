@@ -2,7 +2,7 @@
 <div align="center">
   
   <a href="https://github.com/Yashuu213/Tuuna-Ai-Agent">
-    <img src="static/assets/banner.png" width="100%" alt="TUUNA AI BANNER" />
+    <img src="static/assets/banner.png" width="800" alt="TUUNA AI BANNER" />
   </a>
 
   <br />
