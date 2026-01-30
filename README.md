@@ -48,15 +48,16 @@
 
 ## 🚀 DEPLOYMENT PROTOCOLS
 
-### 🟢 OPTION 1: THE EXECUTABLE (Zero Setup)
-*For those who just want to watch the world burn.*
+### 🟢 OPTION 1: THE EXECUTABLE (Direct Download)
+*Click your OS logo below to acquire the weapon.*
 
-1.  Go to **[Releases](https://github.com/Yashuu213/Tuuna-Ai-Agent/releases)**.
-2.  Download the payload for your OS:
-    -   🪟 **Windows:** `Tuuna-Agent-Windows.zip` (Run `.exe`)
-    -   🍎 **MacOS:** `Tuuna-Agent-MacOS.zip` (Run `.app`)
-    -   🐧 **Linux:** `Tuuna-Agent-Linux.zip` (Run binary)
-3.  **Launch**. The system will auto-detect your environment.
+| **Platform** | **Status** | **Download Link** |
+| :--- | :--- | :--- |
+| **WINDOWS** | 🟢 **ONLINE** | [📥 **Download .EXE**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-Windows.zip) |
+| **MACOS** | 🟢 **ONLINE** | [📥 **Download .APP**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-macOS.zip) |
+| **LINUX** | 🟢 **ONLINE** | [📥 **Download Binary**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-Linux.zip) |
+
+*(Note: If downloads fail, verify the latest [Releases](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases) page)*
 
 ### 🟡 OPTION 2: THE SOURCE (Dev Mode)
 *For the architects and hackers.*
