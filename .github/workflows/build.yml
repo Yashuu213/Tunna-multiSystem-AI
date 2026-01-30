@@ -29,8 +29,6 @@ jobs:
         sudo apt-get install -y python3-tk python3-dev scrot python3-xlib xvfb tcl-dev tk-dev libx11-dev
 
     - name: Install macOS Dependencies
-
-    - name: Install macOS Dependencies
       if: runner.os == 'macOS'
       run: |
         brew install python-tk
