@@ -5,7 +5,6 @@ wikipedia
 pyautogui
 psutil
 google-generativeai
-gunicorn
 python-dotenv
 Pillow
 pyperclip

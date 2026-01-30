@@ -21,8 +21,7 @@ args = [
     '--onefile', # Single .exe file
     '--clean',
     
-    # Hidden Imports (Critical for Flask/SocketIO/EngineIO)
-    '--hidden-import=engineio.async_drivers.threading',
+    # Hidden Imports (Critical for Flask/Scipy etc)
     '--hidden-import=flask_cors',
     '--hidden-import=pyautogui',
 ]
