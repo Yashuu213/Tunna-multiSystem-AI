@@ -38,48 +38,50 @@ from flask_cors import CORS
 LOG_BUFFER = []
 LOG_LOCK = threading.Lock()
 
-class LogStream(object):
-    """Captures print() statements and stores them for the frontend."""
-    def __init__(self, original_stdout):
-        self.original_stdout = original_stdout
+# --- SAFE IMPORTS (DEBUGGING) ---
+print("🚀 Booting Core Systems...")
+try:
+    print("Loading: Flask & CORS...")
+    from flask import Flask, request, jsonify, render_template
+    from flask_cors import CORS
+    
+    print("Loading: PyAutoGUI & PyWhatKit...")
+    import pyautogui
+    import pywhatkit
+    
+    print("Loading: Utils (AI Config)...")
+    from utils.ai_config import generate_content_with_retry, AI_AVAILABLE
+    
+    print("Loading: Utils (System)...")
+    from utils.system_tools import (
+        APP_PATHS, get_system_status, find_and_open_file, write_file, read_file, 
+        get_clipboard_text, run_terminal_command, perform_web_search, 
+        set_alarm, save_memory, get_memory_string, learn_lesson
+    )
+    
+    print("Loading: Utils (Organizer)...")
+    from utils.organizer import organize_files
+    
+    print("Loading: Utils (Vision)...")
+    from utils.vision import (
+        get_screenshot, take_user_screenshot, omni_vision_action, 
+        start_auto_apply, stop_auto_apply
+    )
+    
+    print("Loading: Utils (Beast Mode)...")
+    from utils.beast_mode import (
+        execute_architect, execute_protocol, execute_job_hunter, execute_python_code,
+        execute_cognitive_chain
+    )
+    print("✅ All Systems Loaded.")
 
-    def write(self, message):
-        self.original_stdout.write(message) # Keep printing to console
-        if message.strip():
-            with LOG_LOCK:
-                # Add timestamp and categorize
-                ts = time.strftime("%H:%M:%S")
-                category = "system"
-                if "Error" in message: category = "error"
-                elif "Thinking" in message or "Thought" in message or "🧠" in message: category = "thought"
-                elif "Action" in message or "🛠️" in message: category = "action"
-                
-                LOG_BUFFER.append({"ts": ts, "msg": message.strip(), "type": category})
-                # Keep buffer small
-                if len(LOG_BUFFER) > 100: LOG_BUFFER.pop(0)
-
-    def flush(self):
-        self.original_stdout.flush()
-
-# Redirect stdout
-sys.stdout = LogStream(sys.stdout)
-
-# --- IMPORT MODULES ---
-from utils.ai_config import generate_content_with_retry, AI_AVAILABLE
-from utils.system_tools import (
-    APP_PATHS, get_system_status, find_and_open_file, write_file, read_file, 
-    get_clipboard_text, run_terminal_command, perform_web_search, 
-    set_alarm, save_memory, get_memory_string, learn_lesson
-)
-from utils.organizer import organize_files
-from utils.vision import (
-    get_screenshot, take_user_screenshot, omni_vision_action, 
-    start_auto_apply, stop_auto_apply
-)
-from utils.beast_mode import (
-    execute_architect, execute_protocol, execute_job_hunter, execute_python_code,
-    execute_cognitive_chain
-)
+except Exception as e:
+    print("\n\n" + "!"*50)
+    print(f"❌ FATAL IMPORT ERROR: {e}")
+    print("This often means a missing Visual C++ Redistributable or Corrupt Build.")
+    print("!"*50)
+    input("Press ENTER to exit...")
+    sys.exit(1)
 
 
 
