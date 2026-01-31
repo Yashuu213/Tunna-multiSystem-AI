@@ -17,4 +17,5 @@ pyinstaller
 python-socketio
 python-engineio
 pillow
+google-genai
 
