@@ -30,14 +30,22 @@ def reload_keys():
     """Refreshes API keys from environment (Called after Auth UI)."""
     global API_KEYS, AI_AVAILABLE
     path = get_env_path()
-    # Force reload from the specific path
-    if os.path.exists(path):
-        load_dotenv(path, override=True)
     
-    # Critical: Also trust memory (If file write failed, os.environ has the key)
+    # 1. Load from file (but DO NOT overwrite existing memory keys)
+    if os.path.exists(path):
+        load_dotenv(path, override=False) 
+    
+    # 2. Critical: Ensure we strip whitespace if loaded from file
+    if os.getenv("GOOGLE_API_KEY"):
+        os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY").strip()
+
+    # 3. Reload list
     API_KEYS = get_all_api_keys()
     AI_AVAILABLE = len(API_KEYS) > 0
-    print(f"🔄 AI System Reloaded. Path: {path} | Keys Found: {len(API_KEYS)}")
+    
+    # Debug Log
+    print(f"🔄 AI System Reloaded. Path: {path}")
+    print(f"🔑 Key Status: Memory={'Yes' if os.getenv('GOOGLE_API_KEY') else 'No'} | Total Keys: {len(API_KEYS)}")
 
 def is_ai_ready():
     """Dynamic check for AI availability."""
@@ -55,10 +63,10 @@ API_KEYS = get_all_api_keys()
 AI_AVAILABLE = len(API_KEYS) > 0
 
 MODEL_POOL = [
-    'gemini-2.0-flash-lite', 
+    'gemini-2.0-flash', 
     'gemini-1.5-flash',
-    'gemini-1.5-flash-8b',
-    'gemini-2.0-flash'
+    'gemini-1.5-pro',       # Powerful Fallback
+    'gemini-2.0-flash-lite' # Fast Fallback
 ]
 
 
@@ -125,20 +133,22 @@ def generate_content_with_retry(content_payload):
                 last_error = error_str
                 
                 if "429" in error_str or "Quota" in error_str:
-                    print(f"⚠️ QUOTA HIT: Key #{key_index+1} / {model_name}. Trying next...")
-                    time.sleep(1) # Backoff slightly
+                    print(f"⚠️ QUOTA HIT: Key #{key_index+1} / {model_name}. Waiting 5s...")
+                    time.sleep(5) # Increased backoff for 429
                     continue 
+                elif "404" in error_str:
+                    # Model not found/supported
+                    print(f"⚠️ MODEL ERROR: {model_name} not found. Skipping.")
                 elif "403" in error_str or "key" in error_str.lower():
-                     # If key is bad, don't just skip, flag it.
+                     # Key issue
                      pass
                 else:
-                    print(f"⚠️ Error on Key #{key_index+1} / {model_name}: {error_str}")
-                    time.sleep(0.5)
+                    print(f"⚠️ API Error: {error_str}")
+                    time.sleep(1)
 
     print("❌ CRITICAL: ALL MODELS & KEYS EXHAUSTED.")
     print(f"❌ LAST ERROR: {last_error}")
     
     if "429" in last_error or "403" in last_error or "key" in last_error.lower():
-        return "SYSTEM_ALERT_AUTH_ERROR"
-        
-    return "System Alert: All AI models are currently busy. Please wait 1 minute and try again."
+        # Clean error message for user
+        return "System Alert: API Key Quota Exceeded. Please try again in a minute or use a new key."

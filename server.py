@@ -33,6 +33,10 @@ import pywhatkit
 import threading
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+try:
+    import winshell
+except ImportError:
+    winshell = None # Handle non-Windows systems
 
 # --- REAL-TIME LOGGING SYSTEM ---
 LOG_BUFFER = []
@@ -275,8 +279,11 @@ def execute_ai_action(action_data):
         if "battery" in target: return get_system_status()
         if "alarm" in target: return set_alarm(action_data.get("seconds", 5))
         if "recycle" in target: 
-             try: winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False); return "Recycle bin emptied"
-             except: return "Recycle bin already empty"
+             if winshell:
+                 try: winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False); return "Recycle bin emptied"
+                 except: return "Recycle bin already empty"
+             else:
+                 return "Recycle bin action only available on Windows."
 
     elif action == "mouse":
         sub = action_data.get("sub")
@@ -603,7 +610,8 @@ def stream_logs():
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🚀 TUUNA AI SERVER (BEAST MODE) STARTING...")
+    print("\n" + "="*50)
+    print("🚀 TUUNA AI SERVER (BEAST MODE v2.5 ULTIMATE PATCH) STARTING...")
     print("="*50)
     
     # --- SELF TEST ---
