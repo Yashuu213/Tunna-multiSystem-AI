@@ -103,6 +103,7 @@ def ensure_api_key(force_update=False):
         base_path = os.path.dirname(os.path.abspath(__file__))
     
     env_path = os.path.join(base_path, ".env")
+    print(f"📂 SECURITY: Loading Config from: {env_path}")
     load_dotenv(env_path)
     
     if os.getenv("GOOGLE_API_KEY") and not force_update:
@@ -421,12 +422,13 @@ def execute_ai_action(action_data):
 # --- SYSTEM PROMPT ---
 def ask_gemini_brain(user_command, client_image=None):
     """Sends command to Gemini with Auto-Model-Rotation for fallback."""
-    # DYNAMIC CHECK: Ensure we read the LATEST state from config module
-    if not utils.ai_config.AI_AVAILABLE:
-        # Check if keys exist now (maybe reloaded)
+    
+    # Force refresh if not ready
+    if not utils.ai_config.is_ai_ready():
         utils.ai_config.reload_keys()
-        if not utils.ai_config.AI_AVAILABLE:
-             return None, "AI Library not installed. Please add API Key."
+        
+    # Proceed even if false, let the generate_content function handle the error message 
+    # (This prevents double-logic errors)
 
     system_prompt = """
     You are Tuuna, a friendly and helpful AI personal assistant. You speak in a casual, warm, and engaging tone, like a close friend. You are always ready to help with PC tasks or just chat.
