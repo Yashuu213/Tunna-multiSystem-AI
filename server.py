@@ -50,7 +50,9 @@ try:
     import pywhatkit
     
     print("Loading: Utils (AI Config)...")
-    from utils.ai_config import generate_content_with_retry, AI_AVAILABLE
+    print("Loading: Utils (AI Config)...")
+    import utils.ai_config
+    from utils.ai_config import generate_content_with_retry
     
     print("Loading: Utils (System)...")
     from utils.system_tools import (
@@ -415,8 +417,12 @@ def execute_ai_action(action_data):
 # --- SYSTEM PROMPT ---
 def ask_gemini_brain(user_command, client_image=None):
     """Sends command to Gemini with Auto-Model-Rotation for fallback."""
-    if not AI_AVAILABLE:
-        return None, "AI Library not installed."
+    # DYNAMIC CHECK: Ensure we read the LATEST state from config module
+    if not utils.ai_config.AI_AVAILABLE:
+        # Check if keys exist now (maybe reloaded)
+        utils.ai_config.reload_keys()
+        if not utils.ai_config.AI_AVAILABLE:
+             return None, "AI Library not installed. Please add API Key."
 
     system_prompt = """
     You are Tuuna, a friendly and helpful AI personal assistant. You speak in a casual, warm, and engaging tone, like a close friend. You are always ready to help with PC tasks or just chat.
@@ -597,12 +603,15 @@ if __name__ == '__main__':
     # --- SELF TEST ---
     print("🔎 Performing AI Logic Self-Test...")
     try:
-        test_response = generate_content_with_retry("System Check")
-        if "System Alert" in test_response:
-            print(f"❌ AI SELF-TEST FAILED: {test_response}")
-            print(">> PLEASE CHECK YOUR .env FILE AND API KEYS <<")
+        if utils.ai_config.AI_AVAILABLE:
+            test_response = generate_content_with_retry("System Check")
+            if "System Alert" in test_response or "SYSTEM_ALERT" in test_response:
+                print(f"❌ AI SELF-TEST FAILED: {test_response}")
+                print(">> PLEASE CHECK YOUR .env FILE AND API KEYS <<")
+            else:
+                print("✅ AI Connection Established. Brain is Online.")
         else:
-            print("✅ AI Connection Established. Brain is Online.")
+            print("⚠️ AI Offline: Waiting for API Key...")
     except Exception as e:
         print(f"❌ AI CRITICAL ERROR: {e}")
             

@@ -21,10 +21,10 @@ API_KEYS = get_all_api_keys()
 AI_AVAILABLE = len(API_KEYS) > 0
 
 MODEL_POOL = [
-    'models/gemini-2.0-flash-lite', 
-    'models/gemini-1.5-flash',
-    'models/gemini-1.5-flash-8b',
-    'models/gemini-2.0-flash'
+    'gemini-2.0-flash-lite', 
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-8b',
+    'gemini-2.0-flash'
 ]
 
 def reload_keys():
