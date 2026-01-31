@@ -94,7 +94,13 @@ def ensure_api_key(force_update=False):
     from tkinter import messagebox
     import webbrowser
     
-    env_path = ".env"
+    # Calculate persistent path (Next to EXE)
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    env_path = os.path.join(base_path, ".env")
     load_dotenv(env_path)
     
     if os.getenv("GOOGLE_API_KEY") and not force_update:
@@ -160,12 +166,16 @@ def ensure_api_key(force_update=False):
     def submit():
         key = entry.get().strip()
         if key.startswith("AIza"):
-            with open(env_path, "w") as f:
-                f.write(f"GOOGLE_API_KEY={key}\n")
-            os.environ["GOOGLE_API_KEY"] = key
-            
-            # Re-init client if needed (handled by next request)
-            root.destroy()
+            try:
+                with open(env_path, "w") as f:
+                    f.write(f"GOOGLE_API_KEY={key}\n")
+                os.environ["GOOGLE_API_KEY"] = key
+                root.destroy()
+            except PermissionError:
+                lbl_title.config(text="PERMISSION ERROR: READ DESCRIPTION", fg=WARN_COLOR)
+                messagebox.showerror("Access Denied", f"I cannot write to:\n{env_path}\n\nRe-Run as ADMINISTRATOR or move the App to Desktop.")
+            except Exception as e:
+                messagebox.showerror("System Error", f"Failed to save key: {e}")
         else:
             lbl_title.config(text="ACCESS DENIED: INVALID KEY PATTERN", fg=WARN_COLOR)
 
