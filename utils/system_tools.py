@@ -85,7 +85,24 @@ def find_and_open_file(filename):
                             return f"Found {file} but couldn't open it."
     return f"I couldn't find any file named {filename}."
 
-# ... (write_file, read_file, get_clipboard_text remain same - they are stdlib) ...
+def write_file(filename, content):
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return f"Successfully wrote to {filename}"
+    except Exception as e:
+        return f"Error writing file: {e}"
+
+def read_file(filename):
+    try:
+        if not os.path.exists(filename): return "File not found."
+        with open(filename, 'r', encoding='utf-8') as f:
+            return f.read()
+    except Exception as e:
+        return f"Error reading file: {e}"
+
+def get_clipboard_text():
+    return pyperclip.paste()
 
 def run_terminal_command(cmd):
     """Runs a terminal command."""
