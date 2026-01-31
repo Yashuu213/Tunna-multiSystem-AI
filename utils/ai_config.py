@@ -27,6 +27,14 @@ MODEL_POOL = [
     'models/gemini-2.0-flash'
 ]
 
+def reload_keys():
+    """Refreshes API keys from environment (Called after Auth UI)."""
+    global API_KEYS, AI_AVAILABLE
+    load_dotenv(override=True)
+    API_KEYS = get_all_api_keys()
+    AI_AVAILABLE = len(API_KEYS) > 0
+    print(f"🔄 AI System Reloaded. Keys Available: {len(API_KEYS)}")
+
 def generate_content_with_retry(content_payload):
     if not AI_AVAILABLE:
         return "System Alert: AI Library not available. Please check server logs."

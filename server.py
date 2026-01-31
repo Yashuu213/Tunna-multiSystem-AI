@@ -196,6 +196,10 @@ def ensure_api_key(force_update=False):
 # Run Check BEFORE App Starts
 ensure_api_key()
 
+# RELOAD AI CONFIG (Crucial: Updates keys if user just entered them)
+import utils.ai_config
+utils.ai_config.reload_keys()
+
 # --- PYINSTALLER RESOURCE PATH FIX ---
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
