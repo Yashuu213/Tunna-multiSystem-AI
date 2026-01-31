@@ -168,16 +168,20 @@ def ensure_api_key(force_update=False):
     def submit():
         key = entry.get().strip()
         if key.startswith("AIza"):
+            # 1. CRITICAL: Update Memory FIRST (Session works even if file write fails)
+            os.environ["GOOGLE_API_KEY"] = key
+            
+            # 2. Try Persistence (Save to file)
             try:
                 with open(env_path, "w") as f:
                     f.write(f"GOOGLE_API_KEY={key}\n")
-                os.environ["GOOGLE_API_KEY"] = key
-                root.destroy()
             except PermissionError:
-                lbl_title.config(text="PERMISSION ERROR: READ DESCRIPTION", fg=WARN_COLOR)
-                messagebox.showerror("Access Denied", f"I cannot write to:\n{env_path}\n\nRe-Run as ADMINISTRATOR or move the App to Desktop.")
+                # Show warning but ALLOW continuation
+                messagebox.showwarning("Permission Warning", "Key loaded for THIS SESSION ONLY.\nI could not save it to disk (Permission Denied).\nNext time run as Administrator.")
             except Exception as e:
                 messagebox.showerror("System Error", f"Failed to save key: {e}")
+            
+            root.destroy()
         else:
             lbl_title.config(text="ACCESS DENIED: INVALID KEY PATTERN", fg=WARN_COLOR)
 
