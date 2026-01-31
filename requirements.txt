@@ -6,7 +6,7 @@ pyautogui
 psutil
 google-generativeai
 python-dotenv
-Pillow
+
 pyperclip
 duckduckgo-search
 opencv-python

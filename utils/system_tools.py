@@ -118,7 +118,18 @@ def run_terminal_command(cmd):
     except Exception as e:
         return f"Error running command: {e}"
 
-# ... (perform_web_search remains same) ...
+def perform_web_search(query):
+    """Searches the web using DuckDuckGo."""
+    try:
+        results = DDGS().text(query, max_results=3)
+        if results:
+            summary = ""
+            for r in results:
+                summary += f"- {r['title']}: {r['href']}\n"
+            return f"Search Results for '{query}':\n{summary}"
+        return "No results found."
+    except Exception as e:
+        return f"Search Failed: {e}"
 
 def set_alarm(seconds):
     try:
