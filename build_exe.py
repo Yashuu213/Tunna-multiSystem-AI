@@ -29,7 +29,19 @@ args = [
     '--hidden-import=cv2',
     '--hidden-import=numpy',
     '--hidden-import=PIL',
+    '--hidden-import=google',
+    '--hidden-import=google.genai',
+    '--hidden-import=google.generativeai',
 ]
+
+# --- FORCE COLLECT GOOGLE NAMESPACE ---
+from PyInstaller.utils.hooks import collect_all
+datas, binaries, hiddenimports = collect_all('google')
+args.extend([f'--hidden-import={x}' for x in hiddenimports])
+# Flatten datas to add-data format if needed, but usually hidden-import is enough for logic
+# For datas, we add them to args if collect_all returns them
+for src, dest in datas:
+    args.append(f'--add-data={src}{FRAMEWORK_SEP}{dest}')
 
 # Windows Specifics
 if os.name == 'nt':
