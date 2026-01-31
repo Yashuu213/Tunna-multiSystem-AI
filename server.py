@@ -583,15 +583,11 @@ def handle_command():
     actions, response_text = ask_gemini_brain(command, client_image)
 
     # --- AUTH FAILURE CHECK ---
+    # --- AUTH FAILURE CHECK ---
     if response_text == "SYSTEM_ALERT_AUTH_ERROR" or (actions and "SYSTEM_ALERT_AUTH_ERROR" in str(actions)):
-        print("🚨 AUTH ERROR DETECTED: Triggering Re-Auth UI...")
-        ensure_api_key(force_update=True)
-        # Retry once with new key
-        from utils.ai_config import API_KEYS, get_all_api_keys
-        import utils.ai_config
-        utils.ai_config.API_KEYS = get_all_api_keys() # Reload keys in config module
-        
-        actions, response_text = ask_gemini_brain(command, client_image) # Retry
+        print("🚨 AUTH ERROR DETECTED: Quota Exceeded or Invalid Key.")
+        # DO NOT call ensure_api_key() here - it crashes Flask threads (Tkinter must be main thread)
+        return jsonify({"response": "⚠️ SYSTEM ALERT: API Key Quota Exceeded or Invalid.\n\nPlease restart the application to update your key, or check your Google AI Studio dashboard."})
     
     if actions:
         execution_result = execute_ai_action(actions)
@@ -687,5 +683,9 @@ if __name__ == '__main__':
             webbrowser.open(url)
 
     if __name__ == "__main__":
-        threading.Thread(target=open_browser, daemon=True).start()
-        app.run(port=5000, debug=True, use_reloader=False)
+        def delayed_launch():
+            time.sleep(2.0)
+            open_browser()
+        
+        threading.Thread(target=delayed_launch, daemon=True).start()
+        app.run(port=5000, debug=False, use_reloader=False)
