@@ -12,11 +12,17 @@ pip install -r requirements-win.txt
 pip install pyinstaller pywin32 winshell
 
 echo [3/4] Building Executable...
+echo [3/4] Building Executable...
 python build_exe.py
+
+if exist .env (
+    echo Copying config...
+    copy .env dist\
+)
 
 echo.
 echo ===================================================
 echo   BUILD COMPLETE!
-echo   Check the 'dist' folder for Tuuna_AI_Agent.exe
+echo   Your App is ready: dist\Tuuna_AI_Agent.exe
 echo ===================================================
 pause
