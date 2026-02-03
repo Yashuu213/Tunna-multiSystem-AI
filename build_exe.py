@@ -3,8 +3,6 @@ import PyInstaller.__main__
 import shutil
 import sys
 
-# --- FIX RECURSION LIMIT (Common PyInstaller Crash) ---
-sys.setrecursionlimit(5000)
 
 # --- CONFIGURATION ---
 ENTRY_POINT = "server.py"
@@ -43,7 +41,14 @@ if os.name == 'nt':
     # args.append('--hidden-import=winshell') # PyInstaller finds it automatically from import
     FRAMEWORK_SEP = ';'
 else:
-    FRAMEWORK_SEP = ':'
+    # Explicitly EXCLUDE Windows modules on Mac/Linux to prevent search errors
+    args.append('--exclude-module=winshell')
+    args.append('--exclude-module=pywin32')
+    args.append('--exclude-module=win32com')
+    args.append('--exclude-module=win32api')
+    FRAMEWORK_SEP = ';' # FIX: PyInstaller separators might still need care, but using ; is safer for add-data logic parsing usually, or : on posix.
+    # Actually, separator depends on HOST OS.
+    FRAMEWORK_SEP = ':' if os.name == 'posix' else ';'
 
 # Add Data Folders (Source;Dest OR Source:Dest based on OS)
 args.extend([
