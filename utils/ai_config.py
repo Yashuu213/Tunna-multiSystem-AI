@@ -63,6 +63,7 @@ API_KEYS = get_all_api_keys()
 AI_AVAILABLE = len(API_KEYS) > 0
 
 MODEL_POOL = [
+    'gemini-2.0-pro-exp-02-05', # BRAND NEW (High Limits)
     'gemini-2.0-flash', 
     'gemini-2.0-flash-lite-preview-02-05', # Ultra-new
     'gemini-1.5-flash',
