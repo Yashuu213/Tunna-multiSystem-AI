@@ -28,11 +28,25 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install Dependencies
+      - name: Install Dependencies (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          pip install -r requirements-win.txt
+          pip install setuptools
+
+      - name: Install Dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-linux.txt
+          pip install setuptools
+
+      - name: Install Dependencies (Mac)
+        if: matrix.os == 'macos-latest'
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-mac.txt
           pip install setuptools
 
       - name: Install Windows Deps
