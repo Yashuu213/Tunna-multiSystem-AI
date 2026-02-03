@@ -64,9 +64,11 @@ AI_AVAILABLE = len(API_KEYS) > 0
 
 MODEL_POOL = [
     'gemini-2.0-flash', 
+    'gemini-2.0-flash-lite-preview-02-05', # Ultra-new
     'gemini-1.5-flash',
-    'gemini-1.5-pro',       # Powerful Fallback
-    'gemini-2.0-flash-lite' # Fast Fallback
+    'gemini-1.5-flash-8b', # High-volume model
+    'gemini-1.5-pro',
+    'gemini-pro' # Legacy Fallback
 ]
 
 
@@ -138,7 +140,8 @@ def generate_content_with_retry(content_payload):
                     continue 
                 elif "404" in error_str:
                     # Model not found/supported
-                    print(f"⚠️ MODEL ERROR: {model_name} not found. Skipping.")
+                    print(f"⚠️ MODEL ERROR: {model_name} not found or not supported in your region. ({error_str})")
+
                 elif "403" in error_str or "key" in error_str.lower():
                      # Key issue
                      pass
