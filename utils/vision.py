@@ -1,8 +1,5 @@
 
-try:
-    import pyautogui
-except ImportError:
-    pyautogui = None
+
 import threading
 import json
 import time
@@ -17,6 +14,8 @@ APPLY_THREAD = None
 def get_screenshot():
     """Captures screen and returns a PIL Image."""
     try:
+    try:
+        import pyautogui # Lazy Import
         return pyautogui.screenshot()
     except Exception as e:
         print(f"Screenshot failed: {e}")
@@ -29,6 +28,7 @@ def take_user_screenshot():
         ts = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"Screenshot_{ts}.png"
         filepath = os.path.join(desktop, filename)
+        import pyautogui # Lazy Import
         pyautogui.screenshot(filepath)
         os.startfile(filepath)
         return f"Screenshot saved to Desktop: {filename}"
@@ -41,6 +41,7 @@ def omni_vision_action(instruction):
         screenshot = get_screenshot()
         if not screenshot: return "Failed to see screen."
         
+        import pyautogui # Lazy Import
         width, height = pyautogui.size()
         prompt = f"""
         Task: {instruction}
@@ -59,6 +60,7 @@ def omni_vision_action(instruction):
             
             if "x" in coords and "y" in coords:
                 x, y = int(coords['x']), int(coords['y'])
+                import pyautogui # Lazy Import
                 pyautogui.moveTo(x, y, duration=0.5)
                 pyautogui.click()
                 return f"Omni-Vision: Clicked at ({x}, {y})"
@@ -82,6 +84,7 @@ def auto_apply_loop_thread():
                 continue
                 
             # 2. Vision Analysis
+            import pyautogui # Lazy Import
             width, height = pyautogui.size()
             prompt = f"""
             Analyze this UI for Job Application buttons.
@@ -109,6 +112,7 @@ def auto_apply_loop_thread():
                     if "x" in coords and "y" in coords:
                         x, y = int(coords['x']), int(coords['y'])
                         print(f"🤖 The Closer: FOUND TARGET! Clicking button at ({x}, {y})...")
+                        import pyautogui # Lazy Import
                         pyautogui.moveTo(x, y, duration=0.5)
                         pyautogui.click()
                         time.sleep(4) 
