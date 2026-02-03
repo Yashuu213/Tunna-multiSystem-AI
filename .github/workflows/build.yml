@@ -1,61 +1,46 @@
-name: Build Tuuna Agent
+name: Build Standalone Agents
 
 on:
   push:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    env:
-        PYTHONUTF8: 1
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
 
-    - name: Install Linux System Dependencies
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-tk python3-dev scrot python3-xlib xvfb tcl-dev tk-dev libx11-dev
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
 
-    - name: Install macOS Dependencies
-      if: runner.os == 'macOS'
-      run: |
-        brew install python-tk
-        pip install pyobjc-core pyobjc
+      - name: Install Linux System Deps (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
+      - name: Build Executable
+        run: python build_exe.py
 
-    - name: Install Windows Extras
-      if: runner.os == 'Windows'
-      run: pip install winshell pywin32
-
-    - name: Build with PyInstaller (Linux)
-      if: runner.os == 'Linux'
-      run: xvfb-run -a python build_exe.py
-
-    - name: Build with PyInstaller (Windows/Mac)
-      if: runner.os != 'Linux'
-      run: python build_exe.py
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4  # Using v4 for better performance
-      with:
-        name: Tuuna-Agent-${{ runner.os }}
-        path: dist/
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tuuna_Agent_${{ matrix.os }}
+          path: dist/

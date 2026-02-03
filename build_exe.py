@@ -29,6 +29,9 @@ args = [
     '--hidden-import=google',
     '--hidden-import=google.genai',
     '--hidden-import=google.generativeai',
+    '--hidden-import=PIL',
+    '--hidden-import=PIL.Image',
+    '--hidden-import=numpy',
 ]
 
 # Windows Specifics

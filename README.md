@@ -61,32 +61,42 @@ It tears through the fabric of your Operating System (**Windows, Mac, or Linux**
 #### ⚠️ ACTIVATION PROTOCOLS (READ CAREFULLY)
 
 <details>
-<summary><b>🪟 WINDOWS USERS</b></summary>
+<summary><b>🪟 WINDOWS USERS (Must Read)</b></summary>
 <blockquote>
 1. Download <b>Tuuna-Agent-Windows.zip</b>.<br>
-2. Right-Click > <b>Extract All</b>.<br>
+2. Right-Click > <b>Extract All</b> (Do not run from zip!).<br>
 3. Open folder and double-click <b>Tuuna_AI_Agent.exe</b>.<br>
-4. <i>If Windows Defense blocks it: Click "More Info" > "Run Anyway".</i> (We are too powerful for them).
+<br>
+<b>🚨 SECURITY WARNING (SmartScreen):</b><br>
+Because I am an indie developer, Windows Defender SmartScreen might block the app saying "Windows protected your PC".<br>
+<b>SOLUTION:</b> Click <u>"More Info"</u> → Then click <u>"Run Anyway"</u>.<br>
+(This creates a permanent exception on your PC).
 </blockquote>
 </details>
 
 <details>
-<summary><b>🍎 MAC USERS</b></summary>
+<summary><b>🍎 MAC USERS (Gatekeeper)</b></summary>
 <blockquote>
 1. Download <b>Tuuna-Agent-macOS.zip</b>.<br>
 2. Double-click to unzip.<br>
-3. <b>Right-Click</b> the App > Select <b>Open</b> (This bypasses Apple's Gatekeeper).<br>
-4. Grant Permissions (Accessibility/Screen Recording) when asked. Tuuna needs eyes to see.
+3. <b>Right-Click</b> the App (Tuuna_Agent.app) > Select <b>Open</b>.<br>
+4. A warning will appear: <i>"macOS cannot verify the developer..."</i><br>
+<b>SOLUTION:</b> Click <b>Open</b> in that dialog.<br>
+(If you just double-click, it will refuse to open. You MUST Right-Click -> Open the first time).<br>
+<br>
+<b>Permissions:</b><br>
+On first launch, macOS will ask for <b>Input Monitoring</b> and <b>Screen Recording</b> permissions. Grant these so Tuuna can see your screen and type for you.
 </blockquote>
 </details>
 
 <details>
-<summary><b>🐧 LINUX USERS</b></summary>
+<summary><b>🐧 LINUX USERS (Permissions)</b></summary>
 <blockquote>
 1. Download <b>Tuuna-Agent-Linux.zip</b>.<br>
 2. Extract the archive.<br>
 3. Open Terminal in that folder.<br>
-4. Run: <code>chmod +x Tuuna_AI_Agent</code> then <code>./Tuuna_AI_Agent</code>.
+4. Grant execution rights: <code>chmod +x Tuuna_AI_Agent</code><br>
+5. Run the agent: <code>./Tuuna_AI_Agent</code>
 </blockquote>
 </details>
 

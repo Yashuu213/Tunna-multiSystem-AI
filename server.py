@@ -42,6 +42,29 @@ except ImportError:
 LOG_BUFFER = []
 LOG_LOCK = threading.Lock()
 
+# --- PYINSTALLER RESOURCE PATH FIX ---
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+app = Flask(__name__, 
+            template_folder=resource_path('templates'),
+            static_folder=resource_path('static'))
+CORS(app)
+
+# --- GLOBAL ERROR HANDLER ---
+@app.errorhandler(Exception)
+def handle_error(e):
+    print(f"❌ SERVER ERROR: {e}")
+    traceback.print_exc()
+    return jsonify({"response": f"System Alert: Internal Server Error. Check logs.\nDetails: {str(e)}"}), 500
+
+
 # --- SAFE IMPORTS (DEBUGGING) ---
 print("🚀 Booting Core Systems...")
 try:
@@ -211,20 +234,7 @@ ensure_api_key()
 import utils.ai_config
 utils.ai_config.reload_keys()
 
-# --- PYINSTALLER RESOURCE PATH FIX ---
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
 
-app = Flask(__name__, 
-            template_folder=resource_path('templates'),
-            static_folder=resource_path('static'))
-CORS(app)
 
 # --- AI ROUTER ---
 def execute_ai_action(action_data):
