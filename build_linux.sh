@@ -8,6 +8,8 @@ echo "[1/4] Upgrading PIP..."
 pip install --upgrade pip
 
 echo "[2/4] Installing Linux Dependencies..."
+# CRITICAL: Remove GUI libs that crash on headless systems
+pip uninstall -y pyautogui pywhatkit opencv-python
 pip install -r requirements-linux.txt
 
 echo "[3/4] Checking for Display..."
