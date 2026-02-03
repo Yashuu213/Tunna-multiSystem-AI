@@ -26,6 +26,12 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 import os
+import sys
+import traceback
+
+# --- CRITICAL FIX: macOS OpenSSL Crash (Anaconda/PyInstaller) ---
+os.environ["CRYPTOGRAPHY_OPENSSL_NO_LEGACY"] = "1"
+
 import time
 import json
 # --- SAFE IMPORTS FOR HEADLESS CI ---
