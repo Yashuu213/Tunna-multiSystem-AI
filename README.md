@@ -115,6 +115,27 @@ pip install -r requirements.txt
 python server.py
 ```
 
+### 🟠 OPTION 3: BUILD IT YOURSELF (Native Build)
+*If you want to create your own Executable on your own machine.*
+
+**WINDOWS:**
+1. Open this folder.
+2. Double-Click `build_windows.bat`.
+3. Wait for "BUILD COMPLETE".
+4. Find `.exe` in `dist/`.
+
+**LINUX:**
+1. Copy this entire folder to your Linux machine.
+2. Open Terminal: `chmod +x build_linux.sh`
+3. Run: `./build_linux.sh`
+4. Find binary in `dist/`.
+
+**MACOS:**
+1. Copy this entire folder to your Mac.
+2. Open Terminal: `chmod +x build_mac.sh`
+3. Run: `./build_mac.sh`
+4. Find `.app` in `dist/`.
+
 ---
 
 ## 💀 NEW: "BEAST MODE" FEATURES
