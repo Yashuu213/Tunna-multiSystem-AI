@@ -1,9 +1,9 @@
-
 import PyInstaller.__main__
 import shutil
 import sys
+import os
 
-# --- FIX RECURSION LIMIT (Restored for Windows Stability) ---
+# --- FIX RECURSION LIMIT (Critical for Windows Build) ---
 sys.setrecursionlimit(5000)
 
 
