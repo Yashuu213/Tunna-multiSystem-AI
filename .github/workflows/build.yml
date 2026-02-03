@@ -1,4 +1,4 @@
-name: Build Windows Agent
+name: Build and Release Agents
 
 on:
   push:
@@ -6,11 +6,18 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-windows:
-    name: Build on Windows
-    runs-on: windows-latest
-    
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -27,13 +34,31 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
           pip install setuptools
-          pip install pywin32
 
-      - name: Build Executable
+      - name: Install Windows Deps
+        if: matrix.os == 'windows-latest'
+        run: pip install pywin32
+
+      - name: Install Linux Deps (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk python3-dev scrot libgl1-mesa-glx xvfb
+          sudo apt-get install -y libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+
+      - name: Build Executable (Windows/Mac)
+        if: matrix.os != 'ubuntu-latest'
         run: python build_exe.py
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Build Executable (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: xvfb-run python build_exe.py
+
+      # --- AUTO-RELEASE STEP ---
+      - name: Release to GitHub
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: Tuuna_Agent_Windows
-          path: dist/
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
