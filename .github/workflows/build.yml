@@ -1,4 +1,4 @@
-name: Build and Release Agents
+name: Tuuna AI - Cross Platform Build
 
 on:
   push:
@@ -10,13 +10,30 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build_and_upload:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            req_file: requirements-win.txt
+            build_cmd: python build_exe.py
+            artifact_name: Tuuna_Windows.exe
+            asset_path: dist/Tuuna_AI_Agent.exe
+          
+          - os: ubuntu-latest
+            req_file: requirements-linux.txt
+            build_cmd: xvfb-run python build_exe.py
+            artifact_name: Tuuna_Linux_Binary
+            asset_path: dist/Tuuna_AI_Agent
+          
+          - os: macos-latest
+            req_file: requirements-mac.txt
+            build_cmd: python build_exe.py
+            artifact_name: Tuuna_MacOS.app.zip
+            asset_path: dist/Tuuna_AI_Agent
 
     steps:
       - name: Checkout Code
@@ -28,51 +45,69 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install Dependencies (Windows)
-        if: matrix.os == 'windows-latest'
+      # --- INSTALL DEPENDENCIES (OS SPECIFIC) ---
+      - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements-win.txt
-          pip install setuptools
+          pip install -r ${{ matrix.req_file }}
+          pip install setuptools pyinstaller
 
-      - name: Install Dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements-linux.txt
-          pip install setuptools
-
-      - name: Install Dependencies (Mac)
-        if: matrix.os == 'macos-latest'
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements-mac.txt
-          pip install setuptools
-
-      - name: Install Windows Deps
-        if: matrix.os == 'windows-latest'
-        run: pip install pywin32
-
-      - name: Install Linux Deps (Ubuntu)
+      - name: Install Extra Linux Deps
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-tk python3-dev scrot libgl1-mesa-glx xvfb
-          sudo apt-get install -y libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+          sudo apt-get install -y scrot libgl1-mesa-glx xvfb libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
 
-      - name: Build Executable (Windows/Mac)
-        if: matrix.os != 'ubuntu-latest'
-        run: python build_exe.py
+      - name: Install Extra Windows Deps
+        if: matrix.os == 'windows-latest'
+        run: pip install pywin32
 
-      - name: Build Executable (Linux)
+      # --- BUILD EXECUTABLE ---
+      - name: Build Executable
+        run: ${{ matrix.build_cmd }}
+
+      # --- PREPARE ARTIFACT ---
+      - name: Rename Artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        run: mv dist/Tuuna_AI_Agent.exe dist/Tuuna_Windows.exe
+
+      - name: Rename Artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: xvfb-run python build_exe.py
+        run: mv dist/Tuuna_AI_Agent dist/Tuuna_Linux_Binary
 
-      # --- AUTO-RELEASE STEP ---
-      - name: Release to GitHub
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Zip Artifact (Mac)
+        if: matrix.os == 'macos-latest'
+        run: |
+           cd dist
+           zip -r Tuuna_MacOS.app.zip Tuuna_AI_Agent
+
+      # --- UPLOAD TEMP ARTIFACT ---
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: dist/*
+          name: build-${{ matrix.os }}
+          path: dist/*
+          retention-days: 1
+
+  release:
+    name: Create Release
+    needs: build_and_upload
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: List Files
+        run: ls -R release_assets
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release_assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
