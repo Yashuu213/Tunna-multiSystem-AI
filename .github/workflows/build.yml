@@ -28,7 +28,13 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements.txt
           pip install pyinstaller
+          pip install setuptools
+
+      - name: Install Windows Deps
+        if: matrix.os == 'windows-latest'
+        run: pip install pywin32
 
       - name: Install Linux System Deps (Ubuntu only)
         if: matrix.os == 'ubuntu-latest'
