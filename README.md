@@ -54,7 +54,7 @@ It tears through the fabric of your Operating System (**Windows, Mac, or Linux**
 
 | **PLATFORM** | **STATUS** | **DIRECT LINK** |
 | :---: | :---: | :---: |
-| <img src="https://img.icons8.com/color/48/000000/windows-10.png" width="40"/><br>**WINDOWS** | 🟢 **ONLINE** | [**📥 DOWNLOAD .EXE**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-Windows.zip) |
+| <img src="https://img.icons8.com/color/48/000000/windows-10.png" width="40"/><br>**WINDOWS** | 🟢 **ONLINE** | [**📥 DOWNLOAD .EXE**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/download/v2.5/Tuuna_Windows_v2.5.zip) |
 | <img src="https://img.icons8.com/color/48/000000/mac-os.png" width="40"/><br>**MACOS** | 🟢 **ONLINE** | [**📥 DOWNLOAD .APP**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-macOS.zip) |
 | <img src="https://img.icons8.com/color/48/000000/linux--v1.png" width="40"/><br>**LINUX** | 🟢 **ONLINE** | [**📥 DOWNLOAD BINARY**](https://github.com/Yashuu213/Tunna-multiSystem-AI/releases/latest/download/Tuuna-Agent-Linux.zip) |
 
