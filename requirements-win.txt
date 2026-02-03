@@ -9,7 +9,7 @@ python-dotenv
 pyperclip
 duckduckgo-search
 opencv-python
-numpy
+numpy<2.0.0
 pywin32
 winshell
 pyinstaller

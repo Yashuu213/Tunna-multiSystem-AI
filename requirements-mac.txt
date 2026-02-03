@@ -8,7 +8,7 @@ google-generativeai
 python-dotenv
 duckduckgo-search
 opencv-python-headless
-numpy
+numpy<2.0.0
 pyinstaller
 pillow
 google-genai
