@@ -103,6 +103,7 @@ try:
     print("Loading: Utils (AI Config)...")
     import utils.ai_config
     from utils.ai_config import generate_content_with_retry
+    print(f"DEBUG: Active Models: {utils.ai_config.MODEL_POOL}")
     
     print("Loading: Utils (System)...")
     from utils.system_tools import (
