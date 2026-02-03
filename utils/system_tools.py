@@ -3,7 +3,10 @@ import os
 import subprocess
 import shutil
 import psutil
-import pyperclip
+try:
+    import pyperclip
+except ImportError:
+    pyperclip = None
 import webbrowser
 import json
 import threading

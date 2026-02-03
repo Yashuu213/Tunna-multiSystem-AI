@@ -4,12 +4,18 @@ import json
 import subprocess
 import webbrowser
 import time
-import pyperclip
+try:
+    import pyperclip
+except ImportError:
+    pyperclip = None
 from duckduckgo_search import DDGS
 from .ai_config import generate_content_with_retry
 from .vision import get_screenshot
 from .system_tools import APP_PATHS, run_terminal_command, perform_web_search, find_and_open_file
-import pyautogui
+try:
+    import pyautogui
+except ImportError:
+    pyautogui = None
 
 
 def execute_python_code(code_str):
