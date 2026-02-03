@@ -14,7 +14,6 @@ APPLY_THREAD = None
 def get_screenshot():
     """Captures screen and returns a PIL Image."""
     try:
-    try:
         import pyautogui # Lazy Import
         return pyautogui.screenshot()
     except Exception as e:
