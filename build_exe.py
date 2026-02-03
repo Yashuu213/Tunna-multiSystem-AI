@@ -4,7 +4,7 @@ import sys
 import os
 
 # --- FIX RECURSION LIMIT (Critical for Windows Build) ---
-sys.setrecursionlimit(5000)
+sys.setrecursionlimit(10000)
 
 
 # --- CONFIGURATION ---
