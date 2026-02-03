@@ -43,9 +43,15 @@ jobs:
           sudo apt-get install -y python3-tk python3-dev
           sudo apt-get install -y scrot
           sudo apt-get install -y libgl1-mesa-glx
+          sudo apt-get install -y xvfb
 
       - name: Build Executable
+        if: matrix.os != 'ubuntu-latest'
         run: python build_exe.py
+
+      - name: Build Executable (Linux Headless)
+        if: matrix.os == 'ubuntu-latest'
+        run: xvfb-run python build_exe.py
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
