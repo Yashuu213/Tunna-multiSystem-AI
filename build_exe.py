@@ -36,7 +36,7 @@ args = [
 
 # Windows Specifics
 if os.name == 'nt':
-    args.append('--hidden-import=winshell')
+    # args.append('--hidden-import=winshell') # PyInstaller finds it automatically from import
     FRAMEWORK_SEP = ';'
 else:
     FRAMEWORK_SEP = ':'
