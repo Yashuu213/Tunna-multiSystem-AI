@@ -66,6 +66,8 @@ MODEL_POOL = [
     'gemini-2.0-flash-thinking-exp-01-21', # Thinking Model (Separate Quota)
     'gemini-2.0-pro-exp-02-05', # BRAND NEW (High Limits)
     'gemini-exp-1206', # Experimental (Region Bypass)
+    'gemini-exp-1121', # Legacy Exp (Different Quota)
+    'gemini-exp-1114', # Legacy Exp (Different Quota)
     'gemini-2.0-flash', 
     'gemini-2.0-flash-lite-preview-02-05', # Ultra-new
     'gemini-1.5-flash',
