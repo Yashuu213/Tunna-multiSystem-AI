@@ -1,16 +1,17 @@
 flask
 flask-cors
-pywhatkit
-wikipedia
-pyautogui
+# pyautogui (Removed for Headless Safety)
+# pywhatkit (Removed for Headless)
+# pyperclip (Removed for Headless)
 psutil
 google-generativeai
 python-dotenv
-pyperclip
 duckduckgo-search
 opencv-python-headless
 numpy
 pyinstaller
 pillow
+google-genai
+pydantic
 google-genai
 pydantic
