@@ -28,8 +28,19 @@ sys.excepthook = handle_exception
 import os
 import time
 import json
-import pyautogui
-import pywhatkit
+# --- SAFE IMPORTS FOR HEADLESS CI ---
+try:
+    import pyautogui
+except ImportError:
+    print("Warning: pyautogui not found (Headless Mode?)")
+    pyautogui = None
+
+try:
+    import pywhatkit
+except ImportError:
+    print("Warning: pywhatkit not found (Headless Mode?)")
+    pywhatkit = None
+
 import threading
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS

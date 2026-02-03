@@ -9,11 +9,13 @@ python-dotenv
 
 pyperclip
 duckduckgo-search
-duckduckgo-search
-opencv-python-headless
+# OS-Specific OpenCV to prevent CI Crashes
+opencv-python; sys_platform == 'win32'
+opencv-python-headless; sys_platform != 'win32'
 numpy
+# Windows-Only Dependencies
 pywin32; sys_platform == 'win32'
-# winshell removed
+winshell; sys_platform == 'win32'
 pyinstaller
 pillow
 google-genai
