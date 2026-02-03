@@ -86,9 +86,12 @@ try:
     from flask import Flask, request, jsonify, render_template
     from flask_cors import CORS
     
-    print("Loading: PyAutoGUI & PyWhatKit...")
-    import pyautogui
-    import pywhatkit
+    from flask_cors import CORS
+    
+    # Imports are already handled safely at the top-level
+    if pyautogui is None: print("info: PyAutoGUI is disabled (Headless Mode)")
+    if pywhatkit is None: print("info: PyWhatKit is disabled (Headless Mode)")
+
     
     print("Loading: Utils (AI Config)...")
     print("Loading: Utils (AI Config)...")
@@ -133,9 +136,16 @@ except Exception as e:
 def ensure_api_key(force_update=False):
     """Checks for API key, prompts user with a BEAST MODE UI if missing or forced."""
     from dotenv import load_dotenv, set_key
-    import tkinter as tk
-    from tkinter import messagebox
     import webbrowser
+    
+    # Safe Tkinter Import
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        HAS_UI = True
+    except ImportError:
+        HAS_UI = False
+
     
     # Calculate persistent path (Next to EXE)
     if getattr(sys, 'frozen', False):
@@ -164,10 +174,27 @@ def ensure_api_key(force_update=False):
     UI_DESC = "NEURAL LINK DISCONNECTED.\nINSERT 'GEMINI API KEY' TO RESTORE FUNCTIONS."
     UI_FG = ACCENT_COLOR
     
-    if force_update:
         UI_TITLE = "⚠ CRITICAL ERROR: QUOTA EXCEEDED ⚠"
         UI_DESC = "CURRENT KEY EXHAUSTED OR INVALID.\nINPUT NEW KEY TO RESUME OPERATIONS."
         UI_FG = WARN_COLOR
+
+    # --- CLI FALLBACK (Headless) ---
+    if not HAS_UI:
+        print("\n" + "!"*40)
+        print(f"{UI_TITLE}")
+        print(f"{UI_DESC}")
+        print("!"*40)
+        print("Headless Mode Detected. Please enter your Google API Key below:")
+        key = input("API KEY > ").strip()
+        if key:
+            os.environ["GOOGLE_API_KEY"] = key
+            try:
+                with open(env_path, "w") as f:
+                    f.write(f"GOOGLE_API_KEY={key}\n")
+                print("Key Saved via CLI.")
+            except:
+                print("Key loaded for session only (File Write Error).")
+        return
 
     # --- GUI LOGIC ---
     root = tk.Tk()
