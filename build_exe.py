@@ -1,7 +1,10 @@
 
 import PyInstaller.__main__
-import os
 import shutil
+import sys
+
+# --- FIX RECURSION LIMIT (Common PyInstaller Crash) ---
+sys.setrecursionlimit(5000)
 
 # --- CONFIGURATION ---
 ENTRY_POINT = "server.py"
@@ -20,6 +23,7 @@ args = [
     f'--name={APP_NAME}',
     '--onefile', # Single .exe file
     '--clean',
+    '--noupx', # Disable UPX compression (Fixes CI crashes)
     
     # Hidden Imports (Critical for Flask/Scipy etc)
     '--hidden-import=flask_cors',
