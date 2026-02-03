@@ -9,11 +9,10 @@ python-dotenv
 
 pyperclip
 duckduckgo-search
-duckduckgo-search
-opencv-python-headless
+opencv-python
 numpy
-# pywin32; sys_platform == 'win32'
-# winshell; sys_platform == 'win32'
+pywin32; sys_platform == 'win32'
+winshell; sys_platform == 'win32'
 pyinstaller
 pillow
 google-genai
