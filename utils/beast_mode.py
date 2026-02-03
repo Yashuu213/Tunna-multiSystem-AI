@@ -12,10 +12,8 @@ from duckduckgo_search import DDGS
 from .ai_config import generate_content_with_retry
 from .vision import get_screenshot
 from .system_tools import APP_PATHS, run_terminal_command, perform_web_search, find_and_open_file
-try:
-    import pyautogui
-except ImportError:
-    pyautogui = None
+
+# Lazy Import: PyAutoGUI moved inside functions to prevent Linux CI crash
 
 
 def execute_python_code(code_str):
@@ -320,6 +318,7 @@ def execute_cognitive_chain(goal):
                          subprocess.Popen(APP_PATHS[target], shell=True)
                          result = f"Opened App: {target}"
                     else:
+                        import pyautogui # Lazy Import
                         pyautogui.press('win')
                         time.sleep(0.5)
                         pyautogui.write(target)
@@ -342,6 +341,7 @@ def execute_cognitive_chain(goal):
                         c_end = coords_json.rfind("}") + 1
                         coords = json.loads(coords_json[c_start:c_end])
                         x, y = int(coords['x']), int(coords['y'])
+                        import pyautogui # Lazy Import
                         pyautogui.moveTo(x, y, duration=0.5)
                         pyautogui.click()
                         result = f"Clicked '{target}' at ({x}, {y})"
@@ -350,10 +350,12 @@ def execute_cognitive_chain(goal):
 
                 elif tool == "TYPE":
                     pyperclip.copy(target)
+                    import pyautogui # Lazy Import
                     pyautogui.hotkey('ctrl', 'v')
                     result = f"Typed: {target}"
                     
                 elif tool == "SCROLL":
+                    import pyautogui # Lazy Import
                     pyautogui.scroll(-500)
                     result = "Scrolled Down"
                     

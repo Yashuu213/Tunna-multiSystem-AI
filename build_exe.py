@@ -28,7 +28,6 @@ args = [
     
     # Hidden Imports (Critical for Flask/Scipy etc)
     '--hidden-import=flask_cors',
-    '--hidden-import=pyautogui',
     '--hidden-import=engineio',
     '--hidden-import=socketio',
     '--hidden-import=google',
@@ -39,11 +38,18 @@ args = [
     '--hidden-import=numpy',
 ]
 
-# Windows Specifics
+# OS Specific Configuration
 if os.name == 'nt':
+    # Windows: Force include GUI libs
     args.append('--hidden-import=winshell') 
+    args.append('--hidden-import=pyautogui')
     FRAMEWORK_SEP = ';'
 else:
+    # Linux/Mac: Explicitly EXCLUDE GUI libs to prevent "Headless" crashes
+    args.append('--exclude-module=winshell')
+    args.append('--exclude-module=pyautogui')
+    args.append('--exclude-module=pywhatkit')
+    args.append('--exclude-module=pyperclip')
     FRAMEWORK_SEP = ':'
 
 # Add Data Folders (Source;Dest OR Source:Dest based on OS)
