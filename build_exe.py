@@ -3,6 +3,9 @@ import PyInstaller.__main__
 import shutil
 import sys
 
+# --- FIX RECURSION LIMIT (Restored for Windows Stability) ---
+sys.setrecursionlimit(5000)
+
 
 # --- CONFIGURATION ---
 ENTRY_POINT = "server.py"
