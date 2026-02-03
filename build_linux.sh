@@ -23,8 +23,21 @@ else
     xvfb-run python3 build_exe.py
 fi
 
+    xvfb-run python3 build_exe.py
+fi
+
+# COPY .ENV (Convenience)
+if [ -f .env ]; then
+    echo "Copying config..."
+    cp .env dist/
+fi
+
+# ENSURE EXECUTABLE PERMISSIONS
+chmod +x dist/Tuuna_AI_Agent
+
 echo ""
 echo "==================================================="
 echo "  BUILD COMPLETE!"
-echo "  Check the 'dist' folder for the executable."
+echo "  Your App is ready: dist/Tuuna_AI_Agent"
+echo "  (You can Double-Click it or run ./Tuuna_AI_Agent)"
 echo "==================================================="
