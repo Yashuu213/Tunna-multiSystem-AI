@@ -4,39 +4,10 @@ import sys
 import os
 
 # --- FIX RECURSION LIMIT (Critical for Windows Build) ---
-sys.setrecursionlimit(10000)
+# --- FIX RECURSION LIMIT (Super-Critical for Windows) ---
+sys.setrecursionlimit(20000)
 
-
-# --- CONFIGURATION ---
-ENTRY_POINT = "server.py"
-APP_NAME = "Tuuna_AI_Agent"
-ICON_PATH = "static/favicon.ico" # Use if available, else remove
-
-# --- CLEANUP PREVIOUS BUILD ---
-if os.path.exists("dist"): shutil.rmtree("dist")
-if os.path.exists("build"): shutil.rmtree("build")
-
-print(f"🚀 Starting Build for {APP_NAME}...")
-
-# --- PYINSTALLER ARGS ---
-args = [
-    ENTRY_POINT,
-    f'--name={APP_NAME}',
-    '--onefile', # Single .exe file
-    '--clean',
-    '--noupx', # Disable UPX compression (Fixes CI crashes)
-    
-    # Hidden Imports (Critical for Flask/Scipy etc)
-    '--hidden-import=flask_cors',
-    '--hidden-import=engineio',
-    '--hidden-import=socketio',
-    '--hidden-import=google',
-    '--hidden-import=google.genai',
-    '--hidden-import=google.generativeai',
-    '--hidden-import=PIL',
-    '--hidden-import=PIL.Image',
-    '--hidden-import=numpy',
-]
+# ... (Configuration lines)
 
 # OS Specific Configuration
 if os.name == 'nt':
@@ -50,6 +21,7 @@ else:
     args.append('--exclude-module=pyautogui')
     args.append('--exclude-module=pywhatkit')
     args.append('--exclude-module=pyperclip')
+    args.append('--exclude-module=tkinter')
     FRAMEWORK_SEP = ':'
 
 # Add Data Folders (Source;Dest OR Source:Dest based on OS)

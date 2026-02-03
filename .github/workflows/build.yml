@@ -25,7 +25,7 @@ jobs:
           
           - os: ubuntu-latest
             req_file: requirements-linux.txt
-            build_cmd: xvfb-run python build_exe.py
+            build_cmd: python build_exe.py # Removed xvfb-run (Pure Headless Strategy)
             artifact_name: Tuuna_Linux_Binary
             asset_path: dist/Tuuna_AI_Agent
           
@@ -55,12 +55,15 @@ jobs:
       - name: Install Extra Linux Deps
         if: matrix.os == 'ubuntu-latest'
         run: |
+          # Ensure CLEAN environment (No cached GUI libs)
+          pip uninstall -y pyautogui opencv-python || true
           sudo apt-get update
-          sudo apt-get install -y scrot libgl1-mesa-glx xvfb libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+          # Minimal headless deps
+          sudo apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0
 
       - name: Install Extra Windows Deps
         if: matrix.os == 'windows-latest'
-        run: pip install pywin32
+        run: pip install pywin32 winshell
 
       # --- BUILD EXECUTABLE ---
       - name: Build Executable
