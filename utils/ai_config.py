@@ -6,6 +6,7 @@ import io
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from utils.free_ai_fallback import ask_groq, ask_openrouter
 
 import sys
 
@@ -173,7 +174,46 @@ def generate_content_with_retry(content_payload):
 
     print("❌ CRITICAL: ALL MODELS & KEYS EXHAUSTED.")
     print(f"❌ LAST ERROR: {last_error}")
+
+    # --- FREE AI FALLBACK SYSTEM ---
+    print("\n⚠️ Initiating Fallback Protocol...")
     
+    # 1. Extract Text Prompt
+    fallback_prompt = ""
+    has_image = False
+    
+    try:
+        # Extract from normalized 'formatted_contents'
+        for content in formatted_contents:
+             for part in content.parts:
+                 if part.text:
+                     fallback_prompt += part.text + " "
+                 if part.inline_data: # If image exists
+                     has_image = True
+                     
+        if has_image:
+             fallback_prompt += "\n[System Note: The user also provided an image, but this fallback model cannot see it. Do your best with the text.]"
+             
+        fallback_prompt = fallback_prompt.strip()
+        
+    except:
+        fallback_prompt = str(content_payload) # Absolute fallback
+
+    if fallback_prompt:
+        # 2. Try Groq
+        groq_resp = ask_groq(fallback_prompt)
+        if groq_resp: 
+            print("✅ Groq Fallback Successful.")
+            return groq_resp
+            
+        # 3. Try OpenRouter
+        or_resp = ask_openrouter(fallback_prompt)
+        if or_resp:
+            print("✅ OpenRouter Fallback Successful.")
+            return or_resp
+
+    print("❌ Fallback Failed. Returning original error.")
+
     if "429" in last_error or "403" in last_error or "key" in last_error.lower():
         return "System Alert: API Key Quota Exceeded. Please try again in a minute or use a new key."
     
