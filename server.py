@@ -139,10 +139,13 @@ except Exception as e:
 
 
 
-# --- API KEY CHECK (CYBERPUNK UI) ---
+# --- API KEY CHECK (CYBERPUNK UI v2.0) ---
 def ensure_api_key(force_update=False):
-    """Checks for API key, prompts user with a BEAST MODE UI if missing or forced."""
-    from dotenv import load_dotenv, set_key
+    """
+    Checks for API keys (Gemini, Groq, OpenRouter).
+    Launches a dedicated "Neural Interface" Dashboard if keys are missing or forced.
+    """
+    from dotenv import load_dotenv
     import webbrowser
     
     # Safe Tkinter Import
@@ -153,7 +156,6 @@ def ensure_api_key(force_update=False):
     except ImportError:
         HAS_UI = False
 
-    
     # Calculate persistent path (Next to EXE)
     if getattr(sys, 'frozen', False):
         base_path = os.path.dirname(sys.executable)
@@ -164,116 +166,163 @@ def ensure_api_key(force_update=False):
     print(f"📂 SECURITY: Loading Config from: {env_path}")
     load_dotenv(env_path)
     
-    if os.getenv("GOOGLE_API_KEY") and not force_update:
+    # Check what we have
+    gemini_key = os.getenv("GOOGLE_API_KEY", "")
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    or_key = os.getenv("OPENROUTER_API_KEY", "")
+
+    # If we have at least Gemini OR OpenRouter, and not forced, we can proceed.
+    # (Groq alone is valid too, but we prioritize having at least one Main Brain)
+    has_any_key = gemini_key or groq_key or or_key
+    
+    if has_any_key and not force_update:
         return
 
-    print("⚠️ API Key Issue! Launching Neural Interface...")
+    print("⚠️ Auth Protocol Initiated: Launching Neural Interface...")
 
     # --- THEME CONFIG ---
-    BG_COLOR = "#0D0D0D"       # Pitch Black
+    BG_COLOR = "#050505"       # Void Black
+    PANEL_COLOR = "#0F0F0F"    # Dark Grey
     ACCENT_COLOR = "#00FF41"   # Matrix Green
-    TEXT_COLOR = "#FFFFFF"     # White
     WARN_COLOR = "#FF0055"     # Cyber Red
-    FONT_MONO = ("Consolas", 10)
-    FONT_HEAD = ("Impact", 20)
+    TEXT_MAIN = "#FFFFFF"
+    TEXT_DIM = "#888888"
     
-    UI_TITLE = "⚠ SYSTEM AUTHENTICATION REQUIRED ⚠"
-    UI_DESC = "NEURAL LINK DISCONNECTED.\nINSERT 'GEMINI API KEY' TO RESTORE FUNCTIONS."
-    UI_FG = ACCENT_COLOR
-    
-    
-    if force_update:
-        UI_TITLE = "⚠ CRITICAL ERROR: QUOTA EXCEEDED ⚠"
-        UI_DESC = "CURRENT KEY EXHAUSTED OR INVALID.\nINPUT NEW KEY TO RESUME OPERATIONS."
-        UI_FG = WARN_COLOR
+    FONT_HEAD = ("Impact", 18)
+    FONT_LABEL = ("Consolas", 10, "bold")
+    FONT_INPUT = ("Consolas", 11)
 
     # --- CLI FALLBACK (Headless) ---
     if not HAS_UI:
-        print("\n" + "!"*40)
-        print(f"{UI_TITLE}")
-        print(f"{UI_DESC}")
-        print("!"*40)
-        print("Headless Mode Detected. Please enter your Google API Key below:")
-        key = input("API KEY > ").strip()
-        if key:
-            os.environ["GOOGLE_API_KEY"] = key
-            try:
-                with open(env_path, "w") as f:
-                    f.write(f"GOOGLE_API_KEY={key}\n")
-                print("Key Saved via CLI.")
-            except:
-                print("Key loaded for session only (File Write Error).")
+        print("\n" + "="*40)
+        print("   SYSTEM AUTHENTICATION REQUIRED")
+        print("="*40)
+        print("Enter keys below (Press Enter to skip):")
+        new_gemini = input("GEMINI KEY > ").strip()
+        new_groq = input("GROQ KEY > ").strip()
+        new_or = input("OPENROUTER KEY > ").strip()
+        
+        content = ""
+        if new_gemini: content += f"GOOGLE_API_KEY={new_gemini}\n"
+        if new_groq: content += f"GROQ_API_KEY={new_groq}\n"
+        if new_or: content += f"OPENROUTER_API_KEY={new_or}\n"
+        
+        if content:
+            with open(env_path, "w") as f: f.write(content)
+            print("Configuration Saved.")
         return
 
     # --- GUI LOGIC ---
     root = tk.Tk()
-    root.title("Tuuna // SECURITY CHECK")
+    root.title("TUUNA // ACCESS TERMINAL")
     root.configure(bg=BG_COLOR)
-    root.overrideredirect(True) # Frameless Window
+    root.overrideredirect(True) 
     root.attributes("-topmost", True)
-    
-    # Check screen size for centering
-    w, h = 600, 350
+
+    # Center Window
+    w, h = 700, 500
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
     x, y = (ws/2) - (w/2), (hs/2) - (h/2)
     root.geometry(f'{w}x{h}+{int(x)}+{int(y)}')
 
-    # Border
-    frame = tk.Frame(root, bg=BG_COLOR, highlightbackground=UI_FG, highlightthickness=2)
-    frame.pack(fill="both", expand=True)
+    # Main Frame (Border)
+    main_frame = tk.Frame(root, bg=BG_COLOR, highlightbackground=ACCENT_COLOR, highlightthickness=2)
+    main_frame.pack(fill="both", expand=True)
 
     # Header
-    lbl_title = tk.Label(frame, text=UI_TITLE, font=FONT_HEAD, fg=WARN_COLOR, bg=BG_COLOR)
-    lbl_title.pack(pady=(30, 10))
-
-    lbl_desc = tk.Label(frame, text=UI_DESC, font=FONT_MONO, fg=UI_FG, bg=BG_COLOR, justify="center")
-    lbl_desc.pack(pady=10)
-
-    # Input
-    entry = tk.Entry(frame, width=50, font=("Consolas", 12), bg="#1a1a1a", fg=UI_FG, insertbackground=UI_FG, relief="flat")
-    entry.pack(pady=10, ipady=5)
-    entry.focus()
-
-    # Link
-    def get_key(e): 
-        webbrowser.open("https://aistudio.google.com/app/apikey")
+    header = tk.Frame(main_frame, bg=BG_COLOR)
+    header.pack(fill="x", pady=20)
     
-    lbl_link = tk.Label(frame, text="[ GET KEY FROM GOOGLE ]", font=("Consolas", 9, "underline"), fg="#888", bg=BG_COLOR, cursor="hand2")
-    lbl_link.pack(pady=5)
-    lbl_link.bind("<Button-1>", get_key)
+    tk.Label(header, text="NEURAL LINK // CONFIGURATION", font=FONT_HEAD, fg=ACCENT_COLOR, bg=BG_COLOR).pack()
+    tk.Label(header, text="CONNECT AVAILABLE AI MODULES BELOW", font=("Arial", 8), fg=TEXT_DIM, bg=BG_COLOR).pack()
+
+    # Input Container
+    input_frame = tk.Frame(main_frame, bg=BG_COLOR, padx=40)
+    input_frame.pack(fill="both", expand=True)
+
+    def create_input_row(parent, label_text, var_value, help_url):
+        row = tk.Frame(parent, bg=BG_COLOR, pady=10)
+        row.pack(fill="x")
+        
+        # Label
+        lbl_frame = tk.Frame(row, bg=BG_COLOR)
+        lbl_frame.pack(fill="x")
+        tk.Label(lbl_frame, text=label_text, font=FONT_LABEL, fg=TEXT_MAIN, bg=BG_COLOR).pack(side="left")
+        
+        # Link
+        link = tk.Label(lbl_frame, text="[GET KEY]", font=("Arial", 8, "underline"), fg=TEXT_DIM, bg=BG_COLOR, cursor="hand2")
+        link.pack(side="right")
+        link.bind("<Button-1>", lambda e: webbrowser.open(help_url))
+
+        # Entry
+        entry = tk.Entry(row, width=60, font=FONT_INPUT, bg=PANEL_COLOR, fg=ACCENT_COLOR, insertbackground=ACCENT_COLOR, relief="flat")
+        entry.insert(0, var_value)
+        entry.pack(fill="x", ipady=6, pady=(5, 0))
+        
+        # Underline
+        tk.Frame(row, height=1, bg=ACCENT_COLOR).pack(fill="x")
+        
+        return entry
+
+    # 1. GEMINI
+    ent_gemini = create_input_row(input_frame, "PRIMARY CORE (GEMINI)", gemini_key, "https://aistudio.google.com/app/apikey")
+    
+    # 2. GROQ
+    ent_groq = create_input_row(input_frame, "VELOCITY ENGINE (GROQ)", groq_key, "https://console.groq.com/keys")
+
+    # 3. OPENROUTER
+    ent_or = create_input_row(input_frame, "DEEP NET (OPENROUTER)", or_key, "https://openrouter.ai/keys")
+
+
+    # Status Msg
+    status_label = tk.Label(main_frame, text="WAITING FOR AUTHORIZATION...", font=("Consolas", 9), fg=TEXT_DIM, bg=BG_COLOR)
+    status_label.pack(pady=10)
 
     # Submit Logic
     def submit():
-        key = entry.get().strip()
-        if key.startswith("AIza"):
-            # 1. CRITICAL: Update Memory FIRST (Session works even if file write fails)
-            os.environ["GOOGLE_API_KEY"] = key
-            
-            # 2. Try Persistence (Save to file)
-            try:
-                with open(env_path, "w") as f:
-                    f.write(f"GOOGLE_API_KEY={key}\n")
-            except PermissionError:
-                # Show warning but ALLOW continuation
-                messagebox.showwarning("Permission Warning", "Key loaded for THIS SESSION ONLY.\nI could not save it to disk (Permission Denied).\nNext time run as Administrator.")
-            except Exception as e:
-                messagebox.showerror("System Error", f"Failed to save key: {e}")
-            
-            root.destroy()
-        else:
-            lbl_title.config(text="ACCESS DENIED: INVALID KEY PATTERN", fg=WARN_COLOR)
-
-    # Button
-    btn = tk.Button(frame, text=">> INITIALIZE PROTOCOL <<", font=("Arial", 10, "bold"), bg=UI_FG, fg="black", activebackground="white", activeforeground="black", relief="flat", command=submit, padx=20, pady=10)
-    btn.pack(pady=20)
-    
-    # Exit
-    def close(): 
-        if force_update: root.destroy() # Just close window, don't kill app if updating
-        else: sys.exit(0)
+        g_key = ent_gemini.get().strip()
+        gr_key = ent_groq.get().strip()
+        or_key = ent_or.get().strip()
         
-    btn_close = tk.Button(frame, text="X", font=("Arial", 12), bg=BG_COLOR, fg="#333", relief="flat", command=close)
-    btn_close.place(x=570, y=5)
+        if not (g_key or gr_key or or_key):
+             status_label.config(text="ACCESS DENIED: AT LEAST ONE KEY REQUIRED", fg=WARN_COLOR)
+             return
+
+        # Build .env content
+        env_content = ""
+        # Keep other env vars? Ideally we append/replace, but for now we regenerate AI part
+        # To be safe, let's just write what we have, assuming file handles updates
+        
+        if g_key: 
+            os.environ["GOOGLE_API_KEY"] = g_key
+            env_content += f"GOOGLE_API_KEY={g_key}\n"
+        
+        if gr_key:
+            os.environ["GROQ_API_KEY"] = gr_key
+            env_content += f"GROQ_API_KEY={gr_key}\n"
+            
+        if or_key:
+            os.environ["OPENROUTER_API_KEY"] = or_key
+            env_content += f"OPENROUTER_API_KEY={or_key}\n"
+
+        try:
+            with open(env_path, "w") as f:
+                f.write(env_content)
+            status_label.config(text="ACCESS GRANTED. INITIALIZING...", fg=ACCENT_COLOR)
+            root.after(1000, root.destroy)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save config: {e}")
+            root.destroy()
+
+    # Buttons
+    btn_frame = tk.Frame(main_frame, bg=BG_COLOR)
+    btn_frame.pack(pady=20)
+
+    btn = tk.Button(btn_frame, text=">> INITIALIZE SYSTEMS <<", font=("Arial", 11, "bold"), bg=ACCENT_COLOR, fg="black", activebackground="white", relief="flat", padx=30, pady=10, command=submit)
+    btn.pack()
+
+    # Exit
+    tk.Button(main_frame, text="X", font=("Arial", 12), bg=BG_COLOR, fg="#333", relief="flat", command=lambda: sys.exit(0)).place(x=660, y=10)
 
     root.mainloop()
 

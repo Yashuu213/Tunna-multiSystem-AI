@@ -31,12 +31,15 @@ args = [
     '--hidden-import=flask_cors',
     '--hidden-import=engineio',
     '--hidden-import=socketio',
-    '--hidden-import=google',
     '--hidden-import=google.genai',
     '--hidden-import=google.generativeai',
+    '--hidden-import=groq',       # Added for Fallback
+    '--hidden-import=requests',   # Added for OpenRouter
     '--hidden-import=PIL',
     '--hidden-import=PIL.Image',
     '--hidden-import=numpy',
+    '--hidden-import=tkinter',    # Required for Auth UI
+    '--hidden-import=dotenv',
 ]
 
 # OS Specific Configuration
@@ -46,12 +49,9 @@ if os.name == 'nt':
     args.append('--hidden-import=pyautogui')
     FRAMEWORK_SEP = ';'
 else:
-    # Linux/Mac: Explicitly EXCLUDE GUI libs to prevent "Headless" crashes
-    args.append('--exclude-module=winshell')
-    args.append('--exclude-module=pyautogui')
-    args.append('--exclude-module=pywhatkit')
-    args.append('--exclude-module=pyperclip')
-    args.append('--exclude-module=tkinter')
+    # Linux/Mac
+    # Note: We KEEP tkinter now because of the new Auth Dashboard
+    # args.append('--exclude-module=tkinter') 
     FRAMEWORK_SEP = ':'
 
 # Add Data Folders (Source;Dest OR Source:Dest based on OS)

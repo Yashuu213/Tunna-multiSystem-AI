@@ -48,9 +48,15 @@ def reload_keys():
     print(f"🔄 AI System Reloaded. Path: {path}")
     print(f"🔑 Key Status: Memory={'Yes' if os.getenv('GOOGLE_API_KEY') else 'No'} | Total Keys: {len(API_KEYS)}")
 
+
 def is_ai_ready():
-    """Dynamic check for AI availability."""
-    return len(get_all_api_keys()) > 0
+    """Dynamic check for AI availability (Gemini OR Fallbacks)."""
+    # Fix: Also consider Fallback keys as "Ready"
+    has_gemini = len(get_all_api_keys()) > 0
+    has_groq = bool(os.getenv("GROQ_API_KEY"))
+    has_openrouter = bool(os.getenv("OPENROUTER_API_KEY"))
+    
+    return has_gemini or has_groq or has_openrouter
 
 def get_all_api_keys():
     keys = []
@@ -61,7 +67,7 @@ def get_all_api_keys():
     return keys
 
 API_KEYS = get_all_api_keys()
-AI_AVAILABLE = len(API_KEYS) > 0
+AI_AVAILABLE = is_ai_ready() # Updated to check all
 
 MODEL_POOL = [
     'gemini-2.0-flash'
@@ -133,6 +139,11 @@ def generate_content_with_retry(content_payload):
     # --- EXECUTION LOOP (Smart Fallback) ---
     # Strategy: Try Primary Key with ALL models first (fastest path if key is good but model is busy)
     # Then switch to backup keys.
+    
+    # FIX: If no Gemini keys, skip directly to fallback logic
+    if not API_KEYS:
+        print("⚠️ No Gemini Keys found. Skipping directly to Fallback...")
+        last_error = "No Primary Keys Configured"
     
     for key_index, api_key in enumerate(API_KEYS):
         client = None
