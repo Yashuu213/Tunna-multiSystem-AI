@@ -63,22 +63,35 @@ API_KEYS = get_all_api_keys()
 AI_AVAILABLE = len(API_KEYS) > 0
 
 MODEL_POOL = [
-    'gemini-2.0-flash-thinking-exp-01-21', # Thinking Model (Separate Quota)
-    'gemini-2.0-pro-exp-02-05', # BRAND NEW (High Limits)
-    'gemini-exp-1206', # Experimental (Region Bypass)
-    'gemini-exp-1121', # Legacy Exp (Different Quota)
-    'gemini-exp-1114', # Legacy Exp (Different Quota)
-    'gemini-2.0-flash', 
-    'gemini-2.0-flash-lite-preview-02-05', # Ultra-new
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-002', # Stable Version
-    'gemini-1.5-flash-8b', # High-volume model
-    'gemini-1.5-pro',
-    'gemini-1.5-pro-002', # Stable Version
-    'gemini-pro' # Legacy Fallback
+    'gemini-2.0-flash'
 ]
 
 
+def validate_models(client):
+    """
+    Filters MODEL_POOL to only include models actually available to this API key.
+    Prevents 404 loops.
+    """
+    global MODEL_POOL
+    try:
+        print("🔎 Discovering Available Models...")
+        available = {m.name.split("/")[-1] for m in client.models.list()}
+        
+        valid_models = []
+        for requested in MODEL_POOL:
+            if requested in available or f"models/{requested}" in available:
+                valid_models.append(requested)
+            else:
+                print(f"⚠️ Model '{requested}' not found in API list - SKIPPING")
+        
+        if valid_models:
+            MODEL_POOL = valid_models
+            print(f"✅ Active Model Pool: {MODEL_POOL}")
+        else:
+            print("❌ No requested models found available! Keeping original pool as fallback.")
+            
+    except Exception as e:
+        print(f"⚠️ Model Discovery Failed: {e}")
 
 def generate_content_with_retry(content_payload):
     # SELF-HEALING: If AI seems offline, try to find the key one last time
@@ -124,6 +137,8 @@ def generate_content_with_retry(content_payload):
         client = None
         try:
             client = genai.Client(api_key=api_key)
+            if key_index == 0: # Only validate on first key to save time
+                validate_models(client)
         except: continue
 
         for model_name in MODEL_POOL:
@@ -134,7 +149,7 @@ def generate_content_with_retry(content_payload):
                     contents=formatted_contents
                 )
                 
-                if response and response.text:
+                if response and hasattr(response, "text") and response.text:
                     return response.text.strip()
                 
             except Exception as e:

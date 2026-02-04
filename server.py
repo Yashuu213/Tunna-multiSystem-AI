@@ -626,7 +626,14 @@ def ask_gemini_brain(user_command, client_image=None):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        return f"UI Loading Error: {e}. Check templates folder."
+
+@app.route('/health')
+def health():
+    return "TUUNA AI Server Running"
 
 @app.route('/command', methods=['POST'])
 def handle_command():
