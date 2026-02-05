@@ -268,7 +268,7 @@ def ensure_api_key(force_update=False):
     ent_gemini = create_input_row(input_frame, "PRIMARY CORE (GEMINI)", gemini_key, "https://aistudio.google.com/app/apikey")
     
     # 2. GROQ
-    ent_groq = create_input_row(input_frame, "VELOCITY ENGINE (GROQ)", groq_key, "https://console.groq.com/keys")
+    ent_groq = create_input_row(input_frame, "VELOCITY ENGINE (GROQ CLOUD)", groq_key, "https://console.groq.com/keys")
 
     # 3. OPENROUTER
     ent_or = create_input_row(input_frame, "DEEP NET (OPENROUTER)", or_key, "https://openrouter.ai/keys")
