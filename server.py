@@ -65,7 +65,7 @@ try:
     from utils.organizer import organize_files
     from utils.vision import (
         get_screenshot, take_user_screenshot, omni_vision_action,
-        start_auto_apply, stop_auto_apply
+        start_auto_apply, stop_auto_apply, capture_webcam_image
     )
     from utils.beast_mode import (
         execute_python_code, execute_architect, execute_protocol,
@@ -642,11 +642,20 @@ User Command:
     
     # Vision check
     vision_keywords = ["look", "see", "screen", "vision", "watch", "display", "monitor", "this", "read"]
+    camera_keywords = ["camera", "webcam", "selfie", "hand", "pic", "photo", "me"]
     clipboard_keywords = ["clipboard", "copied", "paste"]
     
     if client_image:
         print("📸 Using Client Webcam Image...")
         content_payload = [final_prompt + user_command, {"mime_type": "image/jpeg", "data": client_image.split(",")[1] if "," in client_image else client_image}]
+    elif any(k in user_command.lower() for k in camera_keywords) and "screen" not in user_command.lower():
+        print("📸 Camera Request Detected (Webcam)...")
+        cam_image = capture_webcam_image()
+        if cam_image:
+            print("✅ Webcam Image Captured!")
+            content_payload = [final_prompt + user_command, cam_image]
+        else:
+            print("⚠️ Webcam Capture Failed.")
     elif any(k in user_command.lower() for k in vision_keywords):
         print("👀 Vision Request Detected (Screen)...")
         screenshot = get_screenshot() if 'get_screenshot' in globals() else None

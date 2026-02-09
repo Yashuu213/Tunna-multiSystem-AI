@@ -49,71 +49,86 @@ def ask_openrouter(prompt, image_data=None):
         print("⚠️ OpenRouter Fallback Skipped: OPENROUTER_API_KEY not found.")
         return None
 
-    # Prioritize Models that are SMART and FREE
-    # Added more options and redundancy
-    free_models = [
-        "google/gemini-2.0-flash-lite-preview-02-05:free", # Primary
-        "google/gemini-2.0-flash-exp:free",              # Secondary
-        "deepseek/deepseek-r1:free",                     # Backup SOT
-        "mistralai/mistral-7b-instruct:free",            # Last Resort
-        "google/gemini-2.0-pro-exp-02-05:free"           # Experimental
+    # CONFIRMED FREE MODELS (Verified Live 2026-02-09)
+    # 1. Vision Candidates (Try these first if image exists)
+    vision_models = [
+        "google/gemini-2.0-flash-lite-preview-02-05:free", 
+        "meta-llama/llama-3.2-11b-vision-instruct:free",
+        "qwen/qwen-2-vl-7b-instruct:free"
+    ]
+    
+    # 2. Text Powerhouses (Verified Survivors)
+    text_models = [
+        "tngtech/deepseek-r1t2-chimera:free",  # DeepSeek R1 (Very smart)
+        "deepseek/deepseek-r1-0528:free",      # Backup DeepSeek
+        "stepfun/step-3.5-flash:free",         # Fast & Reliable
+        "upstage/solar-pro-3:free",            # High logic
+        "arcee-ai/trinity-large-preview:free"  # Backup
     ]
 
     print("🚀 Engaging OpenRouter Fallback System...")
 
-    # Construct Payload (Vision Compatible)
-    messages = []
-    
-    # SYSTEM PROMPT INJECTION (Important for maintaining persona in fallback)
-    # Ideally passed from parent, but hardcoded generic here for safety
-    
+    # A. VISION ATTEMPT
     if image_data:
-        print(f"👁️ Vision Data Detected ({len(image_data)} bytes) -> Using Multi-modal Payload")
-        messages.append({
+        print(f"👁️ Vision Data Detected ({len(image_data)} bytes) -> Trying Vision Models...")
+        messages = [{
             "role": "user",
             "content": [
                 {"type": "text", "text": prompt if prompt else "Describe this image."},
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
             ]
-        })
-    else:
-        messages.append({"role": "user", "content": prompt if prompt else "Hello."})
-
-    for model in free_models:
-        try:
-            print(f"   >> Trying OpenRouter Model: {model}...")
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://github.com/Tuuna-AI", 
-                    "X-Title": "Tuuna AI", 
-                },
-                json={
-                    "model": model, 
-                    "messages": messages
-                },
-                timeout=120 # Extended timeout for vision
-            )
+        }]
+        
+        for model in vision_models:
+            res = _send_openrouter_request(api_key, model, messages)
+            if res: return res
             
-            if response.status_code == 200:
-                data = response.json()
-                if 'choices' in data and len(data['choices']) > 0:
-                    content = data['choices'][0]['message']['content']
-                    if content:
-                        print(f"   ✅ Success! ({len(content)} chars)")
-                        return content
-            elif response.status_code == 429:
-                print(f"   ⚠️ Model {model} rate limited (429).")
-            elif response.status_code == 401:
-                print(f"   ❌ OpenRouter Auth Error (401). Check API Key.")
-                return None # Stop trying if key is invalid
-            else:
-                print(f"   ⚠️ OpenRouter Error {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            print(f"   ❌ Connection Error with {model}: {e}")
+        print("⚠️ All Vision Models Failed. Dropping Image to attempt Text Fallback...")
+
+
+    # B. TEXT ATTEMPT (Graceful Degradation)
+    # If vision failed (or no image), we use generic prompt with top text models
+    messages = [{"role": "user", "content": prompt if prompt else "Hello."}]
+    
+    for model in text_models:
+        res = _send_openrouter_request(api_key, model, messages)
+        if res: return res
 
     print("⚠️ OpenRouter All Models Failed.")
+    return None
+
+def _send_openrouter_request(api_key, model, messages):
+    try:
+        print(f"   >> Trying OpenRouter Model: {model}...")
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/Tuuna-AI", 
+                "X-Title": "Tuuna AI", 
+            },
+            json={
+                "model": model, 
+                "messages": messages
+            },
+            timeout=15 
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'choices' in data and len(data['choices']) > 0:
+                content = data['choices'][0]['message']['content']
+                if content:
+                    print(f"   ✅ Success! ({len(content)} chars)")
+                    return content
+        elif response.status_code == 429:
+            print(f"   ⚠️ Model {model} rate limited (429).")
+        elif response.status_code == 404:
+             print(f"   ⚠️ Model {model} not found (404).")
+        else:
+            print(f"   ⚠️ OpenRouter Error {response.status_code}")
+            
+    except Exception as e:
+        print(f"   ❌ Connection Error with {model}: {e}")
     return None

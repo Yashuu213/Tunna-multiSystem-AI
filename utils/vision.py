@@ -20,6 +20,36 @@ def get_screenshot():
         print(f"Screenshot failed: {e}")
         return None
 
+def capture_webcam_image():
+    """Captures a single frame from the webcam."""
+    try:
+        import cv2 # Lazy Import
+        cap = cv2.VideoCapture(0)
+        
+        if not cap.isOpened():
+            print("Webcam Error: Could not open video device.")
+            return None
+            
+        # Warmup loop (Camera adjusts exposure)
+        for _ in range(5):
+            ret, frame = cap.read()
+            
+        if not ret:
+            print("Webcam Error: Could not read frame.")
+            cap.release()
+            return None
+            
+        # Convert BGR (OpenCV) to RGB (PIL)
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        from PIL import Image
+        img = Image.fromarray(rgb_frame)
+        
+        cap.release()
+        return img
+    except Exception as e:
+        print(f"Webcam Capture Error: {e}")
+        return None
+
 def take_user_screenshot():
     """Saves SS to Desktop and opens it."""
     try:
