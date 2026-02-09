@@ -58,35 +58,62 @@ def get_system_status():
 def find_and_open_file(filename):
     user_dir = os.path.expanduser("~")
     
-    # Smart Directory List based on OS
+    # Smart Directory List based on OS (Recursive Search Scope)
     search_dirs = [
         os.path.join(user_dir, "Desktop"),
         os.path.join(user_dir, "Documents"),
         os.path.join(user_dir, "Downloads"),
         os.path.join(user_dir, "Pictures"),
-        os.path.join(user_dir, "Music")
+        os.path.join(user_dir, "Music"),
+        os.path.join(user_dir, "Videos")
     ]
     
-    print(f"Searching for {filename}...")
+    print(f"🔎 Global Search Initiated for: '{filename}'...")
+    matches = []
+    
     for directory in search_dirs:
         if os.path.exists(directory):
-            for root, dirs, files in os.walk(directory):
-                # optimized: skip hidden and heavy folders
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['AppData', 'node_modules', 'Library']]
-                for file in files:
-                    if filename.lower() in file.lower():
-                        file_path = os.path.join(root, file)
-                        try:
-                            if IS_WINDOWS:
-                                os.startfile(file_path)
-                            elif platform.system() == "Darwin": # Mac
-                                subprocess.call(('open', file_path))
-                            else: # Linux
-                                subprocess.call(('xdg-open', file_path))
-                            return f"Opening {file}"
-                        except:
-                            return f"Found {file} but couldn't open it."
-    return f"I couldn't find any file named {filename}."
+            try:
+                for root, dirs, files in os.walk(directory):
+                    # Smart Skip: Hidden folders and heavy node_modules/venvs
+                    dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['AppData', 'node_modules', 'Library', 'venv', 'env', '__pycache__']]
+                    
+                    for file in files:
+                        if filename.lower() in file.lower():
+                            full_path = os.path.join(root, file)
+                            matches.append(full_path)
+            except Exception as e:
+                print(f"⚠️ Access Denied: {directory} ({e})")
+
+    if not matches:
+        return f"❌ I searched your PC but couldn't find any file named '{filename}'."
+
+    # Remove duplicates if any
+    matches = list(set(matches))
+    match_count = len(matches)
+    
+    # Safety Limit: Open max 3 files to prevent system freeze
+    files_to_open = matches[:3] 
+    opened_log = []
+    
+    for file_path in files_to_open:
+        try:
+            print(f"📂 Opening: {file_path}")
+            if IS_WINDOWS:
+                os.startfile(file_path)
+            elif platform.system() == "Darwin": # Mac
+                subprocess.call(('open', file_path))
+            else: # Linux
+                subprocess.call(('xdg-open', file_path))
+            opened_log.append(os.path.basename(file_path))
+        except Exception as e:
+            opened_log.append(f"[Error: {os.path.basename(file_path)}]")
+
+    response = f"✅ Found {match_count} files. Opened: {', '.join(opened_log)}."
+    if match_count > 3:
+        response += f"\n(Skipped {match_count - 3} others to save memory. Be more specific if needed.)"
+    
+    return response
 
 def write_file(filename, content):
     try:

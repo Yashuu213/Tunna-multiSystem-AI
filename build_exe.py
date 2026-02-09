@@ -31,7 +31,6 @@ args = [
     '--hidden-import=flask_cors',
     '--hidden-import=engineio',
     '--hidden-import=socketio',
-    '--hidden-import=google.genai',
     '--hidden-import=google.generativeai',
     '--hidden-import=groq',       # Added for Fallback
     '--hidden-import=requests',   # Added for OpenRouter

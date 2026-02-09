@@ -1,9 +1,0 @@
-Status: 200
-Headers: {'Date': 'Wed, 04 Feb 2026 11:16:56 GMT', 'Content-Type': 'application/json', 'Transfer-Encoding': 'chunked', 'Connection': 'keep-alive', 'Content-Encoding': 'gzip', 'Access-Control-Allow-Origin': '*', 'Vary': 'Accept-Encoding', 'Permissions-Policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'Referrer-Policy': 'no-referrer, strict-origin-when-cross-origin', 'X-Content-Type-Options': 'nosniff', 'Server': 'cloudflare', 'CF-RAY': '9c89c22f3c9b7935-AMD'}
-Body: 
-         
-
-         
-
-         
-{"id":"gen-1770203814-dhbcgAGhOs2DzRiiJpzj","provider":"Google AI Studio","model":"google/gemini-2.0-flash-001","object":"chat.completion","created":1770203815,"choices":[{"logprobs":null,"finish_reason":"stop","native_finish_reason":"STOP","index":0,"message":{"role":"assistant","content":"Hi there! How can I help you today?\n","refusal":null,"reasoning":null,"annotations":[]}}],"usage":{"prompt_tokens":1,"completion_tokens":11,"total_tokens":12,"cost":0.0000045,"is_byok":false,"prompt_tokens_details":{"cached_tokens":0,"cache_write_tokens":0,"audio_tokens":0,"video_tokens":0},"cost_details":{"upstream_inference_cost":0.0000045,"upstream_inference_prompt_cost":1e-7,"upstream_inference_completions_cost":0.0000044},"completion_tokens_details":{"reasoning_tokens":0,"image_tokens":0}}}

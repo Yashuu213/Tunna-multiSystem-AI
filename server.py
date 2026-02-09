@@ -8,13 +8,11 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
 
     error_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    # Write to file
     try:
         with open("CRASH_LOG.txt", "w") as f:
             f.write(error_msg)
     except: pass
     
-    # Print to console and WAIT
     print("\n\n" + "="*30)
     print("❌ CRITICAL ERROR OCCURRED ❌")
     print("="*30)
@@ -26,30 +24,58 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 import os
-import sys
-import traceback
+import json
+import time
+import random
+import threading
+import webbrowser
+import subprocess
+import platform
 
-# --- CRITICAL FIX: macOS OpenSSL Crash (Anaconda/PyInstaller) ---
+# --- CRITICAL FIX: macOS OpenSSL Crash ---
 os.environ["CRYPTOGRAPHY_OPENSSL_NO_LEGACY"] = "1"
 
-import time
-import json
-# --- SAFE IMPORTS FOR HEADLESS CI ---
+# --- SAFE IMPORTS ---
 try:
     import pyautogui
 except ImportError:
-    print("Warning: pyautogui not found (Headless Mode?)")
+    print("Warning: pyautogui not found")
     pyautogui = None
 
 try:
     import pywhatkit
 except ImportError:
-    print("Warning: pywhatkit not found (Headless Mode?)")
+    print("Warning: pywhatkit not found")
     pywhatkit = None
 
-import threading
-from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS
+try:
+    import pyperclip
+except ImportError:
+    print("Warning: pyperclip not found")
+    pyperclip = None
+
+# --- UTILS IMPORTS ---
+try:
+    from utils.ai_config import generate_content_with_retry, is_ai_ready, reload_keys, MODEL_POOL
+    from utils.system_tools import (
+        APP_PATHS, get_system_status, find_and_open_file, write_file, read_file,
+        get_clipboard_text, run_terminal_command, perform_web_search, set_alarm,
+        save_memory, get_memory_string, learn_lesson
+    )
+    from utils.organizer import organize_files
+    from utils.vision import (
+        get_screenshot, take_user_screenshot, omni_vision_action,
+        start_auto_apply, stop_auto_apply
+    )
+    from utils.beast_mode import (
+        execute_python_code, execute_architect, execute_protocol,
+        execute_job_hunter, execute_cognitive_chain
+    )
+    print("✅ All Systems Loaded.")
+except Exception as e:
+    print(f"\n{'!'*50}\n❌ FATAL IMPORT ERROR: {e}\n{'!'*50}")
+    input("Press ENTER to exit...")
+    sys.exit(1)
 
 winshell = None
 if os.name == 'nt':
@@ -58,97 +84,37 @@ if os.name == 'nt':
     except ImportError:
         pass
 
-# --- REAL-TIME LOGGING SYSTEM ---
+# --- LOGGING SYSTEM ---
 LOG_BUFFER = []
 LOG_LOCK = threading.Lock()
 
-# --- PYINSTALLER RESOURCE PATH FIX ---
+# --- PYINSTALLER RESOURCE PATH ---
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-app = Flask(__name__, 
+# --- FLASK SETUP ---
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+
+app = Flask(__name__,
             template_folder=resource_path('templates'),
             static_folder=resource_path('static'))
 CORS(app)
 
-# --- GLOBAL ERROR HANDLER ---
 @app.errorhandler(Exception)
 def handle_error(e):
     print(f"❌ SERVER ERROR: {e}")
     traceback.print_exc()
-    return jsonify({"response": f"System Alert: Internal Server Error. Check logs.\nDetails: {str(e)}"}), 500
+    return jsonify({"response": f"System Alert: Internal Server Error.\nDetails: {str(e)}"}), 500
 
-
-# --- SAFE IMPORTS (DEBUGGING) ---
-print("🚀 Booting Core Systems...")
-try:
-    print("Loading: Flask & CORS...")
-    from flask import Flask, request, jsonify, render_template
-    from flask_cors import CORS
-    
-    from flask_cors import CORS
-    
-    # Imports are already handled safely at the top-level
-    if pyautogui is None: print("info: PyAutoGUI is disabled (Headless Mode)")
-    if pywhatkit is None: print("info: PyWhatKit is disabled (Headless Mode)")
-
-    
-    print("Loading: Utils (AI Config)...")
-    print("Loading: Utils (AI Config)...")
-    import utils.ai_config
-    from utils.ai_config import generate_content_with_retry
-    print(f"DEBUG: Active Models: {utils.ai_config.MODEL_POOL}")
-    
-    print("Loading: Utils (System)...")
-    from utils.system_tools import (
-        APP_PATHS, get_system_status, find_and_open_file, write_file, read_file, 
-        get_clipboard_text, run_terminal_command, perform_web_search, 
-        set_alarm, save_memory, get_memory_string, learn_lesson
-    )
-    
-    print("Loading: Utils (Organizer)...")
-    from utils.organizer import organize_files
-    
-    print("Loading: Utils (Vision)...")
-    from utils.vision import (
-        get_screenshot, take_user_screenshot, omni_vision_action, 
-        start_auto_apply, stop_auto_apply
-    )
-    
-    print("Loading: Utils (Beast Mode)...")
-    from utils.beast_mode import (
-        execute_architect, execute_protocol, execute_job_hunter, execute_python_code,
-        execute_cognitive_chain
-    )
-    print("✅ All Systems Loaded.")
-
-except Exception as e:
-    print("\n\n" + "!"*50)
-    print(f"❌ FATAL IMPORT ERROR: {e}")
-    print("This often means a missing Visual C++ Redistributable or Corrupt Build.")
-    print("!"*50)
-    input("Press ENTER to exit...")
-    sys.exit(1)
-
-
-
-
-# --- API KEY CHECK (CYBERPUNK UI v2.0) ---
+# --- API KEY CHECK (CYBERPUNK UI) ---
 def ensure_api_key(force_update=False):
-    """
-    Checks for API keys (Gemini, Groq, OpenRouter).
-    Launches a dedicated "Neural Interface" Dashboard if keys are missing or forced.
-    """
     from dotenv import load_dotenv
-    import webbrowser
     
-    # Safe Tkinter Import
     try:
         import tkinter as tk
         from tkinter import messagebox
@@ -156,7 +122,6 @@ def ensure_api_key(force_update=False):
     except ImportError:
         HAS_UI = False
 
-    # Calculate persistent path (Next to EXE)
     if getattr(sys, 'frozen', False):
         base_path = os.path.dirname(sys.executable)
     else:
@@ -166,38 +131,17 @@ def ensure_api_key(force_update=False):
     print(f"📂 SECURITY: Loading Config from: {env_path}")
     load_dotenv(env_path)
     
-    # Check what we have
     gemini_key = os.getenv("GOOGLE_API_KEY", "")
     groq_key = os.getenv("GROQ_API_KEY", "")
     or_key = os.getenv("OPENROUTER_API_KEY", "")
 
-    # If we have at least Gemini OR OpenRouter, and not forced, we can proceed.
-    # (Groq alone is valid too, but we prioritize having at least one Main Brain)
-    has_any_key = gemini_key or groq_key or or_key
-    
-    if has_any_key and not force_update:
+    if (gemini_key or groq_key or or_key) and not force_update:
         return
 
-    print("⚠️ Auth Protocol Initiated: Launching Neural Interface...")
+    print("⚠️ Auth Protocol Initiated...")
 
-    # --- THEME CONFIG ---
-    BG_COLOR = "#050505"       # Void Black
-    PANEL_COLOR = "#0F0F0F"    # Dark Grey
-    ACCENT_COLOR = "#00FF41"   # Matrix Green
-    WARN_COLOR = "#FF0055"     # Cyber Red
-    TEXT_MAIN = "#FFFFFF"
-    TEXT_DIM = "#888888"
-    
-    FONT_HEAD = ("Impact", 18)
-    FONT_LABEL = ("Consolas", 10, "bold")
-    FONT_INPUT = ("Consolas", 11)
-
-    # --- CLI FALLBACK (Headless) ---
     if not HAS_UI:
-        print("\n" + "="*40)
-        print("   SYSTEM AUTHENTICATION REQUIRED")
-        print("="*40)
-        print("Enter keys below (Press Enter to skip):")
+        print("\n" + "="*40 + "\n   SYSTEM AUTHENTICATION REQUIRED\n" + "="*40)
         new_gemini = input("GEMINI KEY > ").strip()
         new_groq = input("GROQ KEY > ").strip()
         new_or = input("OPENROUTER KEY > ").strip()
@@ -208,35 +152,43 @@ def ensure_api_key(force_update=False):
         if new_or: content += f"OPENROUTER_API_KEY={new_or}\n"
         
         if content:
-            with open(env_path, "w") as f: f.write(content)
+            with open(env_path, "w") as f:
+                f.write(content)
             print("Configuration Saved.")
         return
 
-    # --- GUI LOGIC ---
+    # GUI Setup
+    BG_COLOR = "#050505"
+    PANEL_COLOR = "#0F0F0F"
+    ACCENT_COLOR = "#00FF41"
+    WARN_COLOR = "#FF0055"
+    TEXT_MAIN = "#FFFFFF"
+    TEXT_DIM = "#888888"
+    
+    FONT_HEAD = ("Impact", 18)
+    FONT_LABEL = ("Consolas", 10, "bold")
+    FONT_INPUT = ("Consolas", 11)
+
     root = tk.Tk()
     root.title("TUUNA // ACCESS TERMINAL")
     root.configure(bg=BG_COLOR)
-    root.overrideredirect(True) 
+    root.overrideredirect(True)
     root.attributes("-topmost", True)
 
-    # Center Window
     w, h = 700, 500
     ws, hs = root.winfo_screenwidth(), root.winfo_screenheight()
     x, y = (ws/2) - (w/2), (hs/2) - (h/2)
     root.geometry(f'{w}x{h}+{int(x)}+{int(y)}')
 
-    # Main Frame (Border)
     main_frame = tk.Frame(root, bg=BG_COLOR, highlightbackground=ACCENT_COLOR, highlightthickness=2)
     main_frame.pack(fill="both", expand=True)
 
-    # Header
     header = tk.Frame(main_frame, bg=BG_COLOR)
     header.pack(fill="x", pady=20)
     
     tk.Label(header, text="NEURAL LINK // CONFIGURATION", font=FONT_HEAD, fg=ACCENT_COLOR, bg=BG_COLOR).pack()
     tk.Label(header, text="CONNECT AVAILABLE AI MODULES BELOW", font=("Arial", 8), fg=TEXT_DIM, bg=BG_COLOR).pack()
 
-    # Input Container
     input_frame = tk.Frame(main_frame, bg=BG_COLOR, padx=40)
     input_frame.pack(fill="both", expand=True)
 
@@ -244,63 +196,44 @@ def ensure_api_key(force_update=False):
         row = tk.Frame(parent, bg=BG_COLOR, pady=10)
         row.pack(fill="x")
         
-        # Label
         lbl_frame = tk.Frame(row, bg=BG_COLOR)
         lbl_frame.pack(fill="x")
         tk.Label(lbl_frame, text=label_text, font=FONT_LABEL, fg=TEXT_MAIN, bg=BG_COLOR).pack(side="left")
         
-        # Link
         link = tk.Label(lbl_frame, text="[GET KEY]", font=("Arial", 8, "underline"), fg=TEXT_DIM, bg=BG_COLOR, cursor="hand2")
         link.pack(side="right")
         link.bind("<Button-1>", lambda e: webbrowser.open(help_url))
 
-        # Entry
         entry = tk.Entry(row, width=60, font=FONT_INPUT, bg=PANEL_COLOR, fg=ACCENT_COLOR, insertbackground=ACCENT_COLOR, relief="flat")
         entry.insert(0, var_value)
         entry.pack(fill="x", ipady=6, pady=(5, 0))
-        
-        # Underline
         tk.Frame(row, height=1, bg=ACCENT_COLOR).pack(fill="x")
         
         return entry
 
-    # 1. GEMINI
     ent_gemini = create_input_row(input_frame, "PRIMARY CORE (GEMINI)", gemini_key, "https://aistudio.google.com/app/apikey")
-    
-    # 2. GROQ
     ent_groq = create_input_row(input_frame, "VELOCITY ENGINE (GROQ CLOUD)", groq_key, "https://console.groq.com/keys")
-
-    # 3. OPENROUTER
     ent_or = create_input_row(input_frame, "DEEP NET (OPENROUTER)", or_key, "https://openrouter.ai/keys")
 
-
-    # Status Msg
     status_label = tk.Label(main_frame, text="WAITING FOR AUTHORIZATION...", font=("Consolas", 9), fg=TEXT_DIM, bg=BG_COLOR)
     status_label.pack(pady=10)
 
-    # Submit Logic
     def submit():
         g_key = ent_gemini.get().strip()
         gr_key = ent_groq.get().strip()
         or_key = ent_or.get().strip()
         
         if not (g_key or gr_key or or_key):
-             status_label.config(text="ACCESS DENIED: AT LEAST ONE KEY REQUIRED", fg=WARN_COLOR)
-             return
+            status_label.config(text="ACCESS DENIED: AT LEAST ONE KEY REQUIRED", fg=WARN_COLOR)
+            return
 
-        # Build .env content
         env_content = ""
-        # Keep other env vars? Ideally we append/replace, but for now we regenerate AI part
-        # To be safe, let's just write what we have, assuming file handles updates
-        
         if g_key: 
             os.environ["GOOGLE_API_KEY"] = g_key
             env_content += f"GOOGLE_API_KEY={g_key}\n"
-        
         if gr_key:
             os.environ["GROQ_API_KEY"] = gr_key
             env_content += f"GROQ_API_KEY={gr_key}\n"
-            
         if or_key:
             os.environ["OPENROUTER_API_KEY"] = or_key
             env_content += f"OPENROUTER_API_KEY={or_key}\n"
@@ -314,28 +247,22 @@ def ensure_api_key(force_update=False):
             messagebox.showerror("Error", f"Failed to save config: {e}")
             root.destroy()
 
-    # Buttons
     btn_frame = tk.Frame(main_frame, bg=BG_COLOR)
     btn_frame.pack(pady=20)
 
-    btn = tk.Button(btn_frame, text=">> INITIALIZE SYSTEMS <<", font=("Arial", 11, "bold"), bg=ACCENT_COLOR, fg="black", activebackground="white", relief="flat", padx=30, pady=10, command=submit)
-    btn.pack()
+    tk.Button(btn_frame, text=">> INITIALIZE SYSTEMS <<", font=("Arial", 11, "bold"), 
+              bg=ACCENT_COLOR, fg="black", activebackground="white", relief="flat", 
+              padx=30, pady=10, command=submit).pack()
 
-    # Exit
-    tk.Button(main_frame, text="X", font=("Arial", 12), bg=BG_COLOR, fg="#333", relief="flat", command=lambda: sys.exit(0)).place(x=660, y=10)
+    tk.Button(main_frame, text="X", font=("Arial", 12), bg=BG_COLOR, fg="#333", 
+              relief="flat", command=lambda: sys.exit(0)).place(x=660, y=10)
 
     root.mainloop()
 
-# Run Check BEFORE App Starts
 ensure_api_key()
+reload_keys()
 
-# RELOAD AI CONFIG (Crucial: Updates keys if user just entered them)
-import utils.ai_config
-utils.ai_config.reload_keys()
-
-
-
-# --- AI ROUTER ---
+# --- ACTION HANDLER (FIXED - SINGLE BLOCK) ---
 def execute_ai_action(action_data):
     """Executes the JSON action(s) returned by Gemini."""
     
@@ -351,6 +278,7 @@ def execute_ai_action(action_data):
     
     print(f"Executing AI Action: {action} -> {target}")
 
+    # 1. DELAY
     if action == "delay":
         try:
             seconds = float(target)
@@ -360,155 +288,275 @@ def execute_ai_action(action_data):
             time.sleep(1)
             return "Waited 1s"
 
-    if action == "open_app":
+    # 2. OPEN APP
+    elif action == "open_app":
         if target in APP_PATHS:
             os.system(APP_PATHS[target])
             return f"Opening {target}"
-        else:
+        elif pyautogui:
             pyautogui.press('win')
             time.sleep(0.5)
             pyautogui.write(target)
             time.sleep(0.5)
             pyautogui.press('enter')
             return f"Opening {target}"
+        return "Error: pyautogui not available"
 
+    # 3. OPEN WEB
     elif action == "open_web":
-        if not target.startswith('http'): target = 'https://' + target
+        if not target.startswith('http'):
+            target = 'https://' + target
         webbrowser.open(target)
         return f"Opening {target}"
 
+    # 4. PLAY MUSIC
     elif action == "play_music":
-        pywhatkit.playonyt(target)
-        return f"Playing {target} on YouTube"
+        if pywhatkit:
+            pywhatkit.playonyt(target)
+            return f"Playing {target} on YouTube"
+        return "Error: pywhatkit not available"
 
+    # 5. WHATSAPP
+    elif action == "whatsapp":
+        target = str(target)
+        message = action_data.get("message", "")
+        
+        if target.startswith("+"):
+            if pywhatkit:
+                try:
+                    pywhatkit.sendwhatmsg_instantly(target, message, tab_close=True)
+                    return f"Sent WhatsApp to {target}: {message}"
+                except Exception as e:
+                    return f"WhatsApp API Error: {e}"
+            return "Error: pywhatkit not available"
+        else:
+            if not pyautogui:
+                return "Error: Visual Mode requires PyAutoGUI."
+            
+            print(f"⏳ Opening WhatsApp Desktop for '{target}'...")
+            # Try opening Desktop App first, fallback to Web if needed
+            os.system("start whatsapp:") 
+            time.sleep(5) # Wait for app to focus
+            
+            # Search for Contact (Universal Ctrl+F or Ctrl+N)
+            pyautogui.hotkey('ctrl', 'f') 
+            time.sleep(1)
+            
+            pyautogui.write(target, interval=0.1)
+            time.sleep(1.5)
+            pyautogui.press('down') # Select first result
+            time.sleep(0.5)
+            pyautogui.press('enter')
+            time.sleep(1)
+            
+            if message:
+                pyautogui.write(message, interval=0.05)
+                time.sleep(0.5)
+                pyautogui.press('enter')
+                return f"Opened Chat for '{target}' and sent: {message}"
+            
+            return f"Opened WhatsApp Chat for '{target}'"
+
+    # 6. SYSTEM CONTROL
     elif action == "system":
-        if "shutdown" in target: os.system("shutdown /s /t 10"); return "Shutting down in 10s"
-        if "restart" in target: os.system("shutdown /r /t 10"); return "Restarting in 10s"
-        if "sleep" in target: os.system("rundll32.dll powrprof.dll,SetSuspendState 0,1,0"); return "Going to sleep"
-        if "battery" in target: return get_system_status()
-        if "alarm" in target: return set_alarm(action_data.get("seconds", 5))
-        if "recycle" in target: 
-             if winshell:
-                 try: winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False); return "Recycle bin emptied"
-                 except: return "Recycle bin already empty"
-             else:
-                 return "Recycle bin action only available on Windows."
+        if "shutdown" in target:
+            os.system("shutdown /s /t 10")
+            return "Shutting down in 10s"
+        if "restart" in target:
+            os.system("shutdown /r /t 10")
+            return "Restarting in 10s"
+        if "sleep" in target:
+            os.system("rundll32.dll powrprof.dll,SetSuspendState 0,1,0")
+            return "Going to sleep"
+        if "battery" in target:
+            return get_system_status() if 'get_system_status' in globals() else "N/A"
+        if "alarm" in target:
+            return set_alarm(action_data.get("seconds", 5))
+        if "recycle" in target:
+            if winshell:
+                try:
+                    winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
+                    return "Recycle bin emptied"
+                except:
+                    return "Recycle bin already empty"
+            return "Recycle bin action only available on Windows."
+        return f"Unknown system command: {target}"
 
+    # 7. MOUSE CONTROL
     elif action == "mouse":
+        if not pyautogui:
+            return "Error: pyautogui not available"
         sub = action_data.get("sub")
         if sub == "move":
-            direction = target
             amount = 100
-            if "up" in direction: pyautogui.moveRel(0, -amount)
-            if "down" in direction: pyautogui.moveRel(0, amount)
-            if "left" in direction: pyautogui.moveRel(-amount, 0)
-            if "right" in direction: pyautogui.moveRel(amount, 0)
+            if "up" in target:
+                pyautogui.moveRel(0, -amount)
+            elif "down" in target:
+                pyautogui.moveRel(0, amount)
+            elif "left" in target:
+                pyautogui.moveRel(-amount, 0)
+            elif "right" in target:
+                pyautogui.moveRel(amount, 0)
             return "Moved mouse"
-        if sub == "click": pyautogui.click(); return "Clicked"
-        if sub == "right_click": pyautogui.click(button='right'); return "Right clicked"
-        if sub == "scroll": 
-            if "up" in target: pyautogui.scroll(500)
-            else: pyautogui.scroll(-500)
+        if sub == "click":
+            pyautogui.click()
+            return "Clicked"
+        if sub == "right_click":
+            pyautogui.click(button='right')
+            return "Right clicked"
+        if sub == "scroll":
+            if "up" in target:
+                pyautogui.scroll(500)
+            else:
+                pyautogui.scroll(-500)
             return "Scrolled"
 
+    # 8. MEDIA
     elif action == "media":
         sub = action_data.get("sub")
-        if sub == "screenshot": return take_user_screenshot()
+        if sub == "screenshot":
+            return take_user_screenshot() if 'take_user_screenshot' in globals() else "N/A"
         if sub == "screen_record":
             duration = int(action_data.get("duration", 10))
             code = f"""
-            import cv2
-            import numpy as np
-            import pyautogui
-            import time
-            import os
-            
-            SCREEN_SIZE = tuple(pyautogui.size())
-            fourcc = cv2.VideoWriter_fourcc(*"XVID")
-            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
-            filename = os.path.join(desktop, f"ScreenRec_{{int(time.time())}}.avi")
-            out = cv2.VideoWriter(filename, fourcc, 20.0, (SCREEN_SIZE))
-            
-            print(f"Recording for {duration} seconds...")
-            start_time = time.time()
-            while int(time.time() - start_time) < {duration}:
-                img = pyautogui.screenshot()
-                frame = np.array(img)
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                out.write(frame)
-                
-            out.release()
-            print(f"Saved: {{filename}}")
-            os.startfile(filename)
-            """
-            return execute_python_code(code)
+import cv2
+import numpy as np
+import pyautogui
+import time
+import os
 
+SCREEN_SIZE = tuple(pyautogui.size())
+fourcc = cv2.VideoWriter_fourcc(*"XVID")
+desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+filename = os.path.join(desktop, f"ScreenRec_{{int(time.time())}}.avi")
+out = cv2.VideoWriter(filename, fourcc, 20.0, SCREEN_SIZE)
+
+print(f"Recording for {duration} seconds...")
+start_time = time.time()
+while int(time.time() - start_time) < {duration}:
+    img = pyautogui.screenshot()
+    frame = np.array(img)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    out.write(frame)
+    
+out.release()
+print(f"Saved: {{filename}}")
+os.startfile(filename)
+"""
+            return execute_python_code(code)
         if sub == "voice_record":
             duration = int(action_data.get("duration", 10))
             code = f"""
-            import sounddevice as sd
-            from scipy.io.wavfile import write
-            import os
-            import time
-            
-            fs = 44100
-            seconds = {duration}
-            print(f"Recording Voice for {duration}s...")
-            myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
-            sd.wait()
-            
-            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
-            filename = os.path.join(desktop, f"VoiceRec_{{int(time.time())}}.wav")
-            write(filename, fs, myrecording)
-            print(f"Saved: {{filename}}")
-            os.startfile(filename)
-            """
+import sounddevice as sd
+from scipy.io.wavfile import write
+import os
+import time
+
+fs = 44100
+seconds = {duration}
+print(f"Recording Voice for {duration}s...")
+myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
+sd.wait()
+
+desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+filename = os.path.join(desktop, f"VoiceRec_{{int(time.time())}}.wav")
+write(filename, fs, myrecording)
+print(f"Saved: {{filename}}")
+os.startfile(filename)
+"""
             return execute_python_code(code)
 
+    # 9. KEYBOARD
     elif action == "keyboard":
+        if not pyautogui:
+            return "Error: pyautogui not available"
         sub = action_data.get("sub")
-        if sub == "type": 
-            # FIX: Use Clipboard Paste
-            pyperclip.copy(target)
+        if sub == "type":
+            # Semantic Typing v4 (Line-by-Line Paste)
+            if pyperclip and "\n" in target:
+                lines = target.split("\n")
+                
+                for i, line in enumerate(lines):
+                    # Prepare payload: Line + Newline (except potentially last line)
+                    # We utilize the natural newline handling of Paste to avoid Auto-Indent triggers
+                    payload = line
+                    if i < len(lines) - 1:
+                        payload += "\n"
+                    
+                    pyperclip.copy(payload)
+                    pyautogui.hotkey('ctrl', 'v')
+                    
+                    # Human Delay (Thinking time per line)
+                    # This gives the illusion of "Slow Typing" while ensuring "Block Paste" safety
+                    time.sleep(random.uniform(0.1, 0.4))
+                
+                return f"Line-Typed {len(lines)} lines"
+            else:
+                # Single line: Character typing (Safe for Chat/Commands)
+                for char in target:
+                    pyautogui.write(char)
+                    time.sleep(random.uniform(0.01, 0.05)) 
+                return f"Typed: {target}"
+        if sub == "press":
+            pyautogui.press(target)
+            return f"Pressed {target}"
+        if sub == "copy":
+            pyautogui.hotkey('ctrl', 'c')
+            return "Copied"
+        if sub == "paste":
             pyautogui.hotkey('ctrl', 'v')
-            return f"Pasted {len(target)} chars"
-        if sub == "press": pyautogui.press(target); return f"Pressed {target}"
-        if sub == "copy": pyautogui.hotkey('ctrl', 'c'); return "Copied"
-        if sub == "paste": pyautogui.hotkey('ctrl', 'v'); return "Pasted"
-        if sub == "hotkey": 
+            return "Pasted"
+        if sub == "hotkey":
             keys = target.split(",")
             pyautogui.hotkey(*[k.strip() for k in keys])
             return f"Pressed Hotkey: {target}"
 
+    # 10. FILES
     elif action == "file":
         sub = action_data.get("sub")
-        if sub == "open": return find_and_open_file(target)
-        if sub == "write": return write_file(target, action_data.get("content", ""))
-        if sub == "read": return read_file(target)
+        if sub == "open":
+            return find_and_open_file(target)
+        if sub == "write":
+            return write_file(target, action_data.get("content", ""))
+        if sub == "read":
+            return read_file(target)
 
+    # 11. MEMORY
     elif action == "memory":
         sub = action_data.get("sub")
         target_val = target
-        if sub == "save": save_memory(target_val, "user_facts")
-        elif sub == "preference": save_memory(target_val, "preferences")
-        else: save_memory(target_val, "user_facts")
+        if sub == "save":
+            save_memory(target_val, "user_facts")
+        elif sub == "preference":
+            save_memory(target_val, "preferences")
+        else:
+            save_memory(target_val, "user_facts")
         return f"Memory Saved: {target_val}"
 
+    # 12. LEARN
     elif action == "learn":
         learn_lesson(target)
         return f"Lesson Learned: {target}"
-    
+
+    # 13. CLIPBOARD
     elif action == "clipboard":
         return get_clipboard_text()
-    
+
+    # 14. TERMINAL
     elif action == "terminal":
         return run_terminal_command(target)
-    
+
+    # 15. SEARCH
     elif action == "search":
         return perform_web_search(target)
-        
+
+    # 16. ORGANIZE
     elif action == "organize":
         return organize_files(target)
+
+    # 17. BEAST MODE ACTIONS
+    elif action == "executor":
+        return execute_python_code(action_data.get("code", ""))
 
     elif action == "architect":
         return execute_architect(target, action_data.get("sub", ""))
@@ -518,14 +566,13 @@ def execute_ai_action(action_data):
 
     elif action == "job_hunter":
         return execute_job_hunter(target)
-        
+
     elif action == "auto_apply":
         sub = action_data.get("sub")
-        if sub == "start": return start_auto_apply()
-        if sub == "stop": return stop_auto_apply()
-
-    elif action == "executor":
-        return execute_python_code(action_data.get("code", ""))
+        if sub == "start":
+            return start_auto_apply()
+        if sub == "stop":
+            return stop_auto_apply()
 
     elif action == "reasoning":
         return execute_cognitive_chain(target)
@@ -539,140 +586,105 @@ def execute_ai_action(action_data):
 def ask_gemini_brain(user_command, client_image=None):
     """Sends command to Gemini with Auto-Model-Rotation for fallback."""
     
-    # Force refresh if not ready
-    if not utils.ai_config.is_ai_ready():
-        utils.ai_config.reload_keys()
-        
-    # Proceed even if false, let the generate_content function handle the error message 
-    # (This prevents double-logic errors)
+    if not is_ai_ready():
+        reload_keys()
 
     system_prompt = """
-    You are Tuuna, a friendly and helpful AI personal assistant. You speak in a casual, warm, and engaging tone, like a close friend. You are always ready to help with PC tasks or just chat.
-    
-    LANGUAGE SUPPORT: You understand both English and Hindi (and Hinglish).
-    - If the user speaks Hindi, reply in **Hindi (using Devanagari script)** so the TTS engine speaks it correctly.
-    - Translate Hindi commands to actions (e.g. "Google kholo" -> open_web google).
+You are Tuuna, a friendly and helpful AI personal assistant. You speak in a casual, warm, and engaging tone, like a close friend. You are always ready to help with PC tasks or just chat.
 
-    CODE GENERATION RULES:
-    - If the user asks to write code or a file, you MUST follow these strict rules:
-    1. **ghost_writer_mode**: If the user asks to "write code", "type this", or is looking at a code editor, do NOT create a file. Instead, **TYPE/PASTE** the code directly into the active window using the `keyboard` -> `type` action.
-    2. **file_mode**: Only use `file` -> `write` if the user explicitly says "create a file named..." or "save to...".
-    3. **NO COMMENTS**: Do not write comments in the code.
-    4. **NO EXAMPLES**: Do not add "Example usage" blocks.
-    5. **CLEAN CODE**: Write only the necessary functional code.
+LANGUAGE SUPPORT: You understand both English and Hindi (and Hinglish).
+- If the user speaks Hindi, reply in **Hindi (using Devanagari script)** so the TTS engine speaks it correctly.
+- Translate Hindi commands to actions (e.g. "Google kholo" -> open_web google).
 
-    Analyze the user's command and decide if it requires a PC action or just a chat response.
+CODE GENERATION RULES:
+- If the user asks to write code or a file, you MUST follow these strict rules:
+1. **ghost_writer_mode**: If the user asks to "write code", "type this", or is looking at a code editor, do NOT create a file. Instead, **TYPE/PASTE** the code directly into the active window using the `keyboard` -> `type` action.
+2. **file_mode**: Only use `file` -> `write` if the user explicitly says "create a file named..." or "save to...".
+3. **NO COMMENTS**: Do not write comments in the code.
+4. **NO EXAMPLES**: Do not add "Example usage" blocks.
+5. **CLEAN CODE**: Write only the necessary functional code.
 
-    If it is a PC ACTION, output ONLY a JSON LIST of objects with this format:
-    [
-        {"action": "open_app", "target": "notepad"},
-        {"action": "delay", "target": "2"},
-        {"action": "keyboard", "sub": "type", "target": "Hello World"}
-    ]
+Analyze the user's command and decide if it requires a PC action or just a chat response.
 
-    Available Actions:
-    - Open App: {"action": "open_app", "target": "app_name"} (e.g. calculator, notepad, vscode)
-    - Open Website: {"action": "open_web", "target": "url_or_name"}
-    - Play Media: {"action": "play_music", "target": "song_name"}
-    - Media:
-        - Screenshot: {"action": "media", "sub": "screenshot"}
-        - Screen Record: {"action": "media", "sub": "screen_record", "duration": 10}
-        - Voice Record: {"action": "media", "sub": "voice_record", "duration": 10}
-    - System Control: 
-        - General: {"action": "system", "target": "shutdown/restart/sleep/battery/recycle_bin"}
-        - Alarm: {"action": "system", "target": "alarm", "seconds": 60}
-    - Mouse: {"action": "mouse", "sub": "move/click/right_click/scroll", "target": "up/down/left/right"}
-    - Keyboard: 
-        - Type: {"action": "keyboard", "sub": "type", "target": "text"}
-        - Press: {"action": "keyboard", "sub": "press", "target": "key_name"}
-        - Hotkey: {"action": "keyboard", "sub": "hotkey", "target": "ctrl,c"}
-    - Files: 
-        - Open: {"action": "file", "sub": "open", "target": "filename"}
-        - Write: {"action": "file", "sub": "write", "target": "filename.ext", "content": "file_content"}
-        - Read: {"action": "file", "sub": "read", "target": "filename.ext"}
-        * Note: Files are written to the CURRENT PROJECT FOLDER where Tuuna is running.
-    - Delay: {"action": "delay", "target": "seconds_to_wait"}
-    - Memory: 
-        - {"action": "memory", "sub": "save", "target": "User is a dev"}
-        - {"action": "memory", "sub": "preference", "target": "Always use chrome"}
-    - Learn: {"action": "learn", "target": "Lesson or correction"} (Use this when the user corrects you or an action fails. e.g. "Do not use 'start' for spotify")
-    - Clipboard: {"action": "clipboard", "sub": "read"}
-    - Terminal: {"action": "terminal", "target": "command_to_run"} (Use for system commands, git, pip, etc.)
-    - Search: {"action": "search", "target": "search_query"} (Use when you need information from the internet)
-    - Organize: {"action": "organize", "target": "downloads/desktop/path"} (Use when user says "organize my desktop" or "clean up this folder")
-    - Architect: {"action": "architect", "target": "Project Name", "sub": "Description of the app"} (Use for "Build a website...", "Create a project...")
-    - Protocol: {"action": "protocol", "target": "gaming/focus"} (Use for "Initiate Gaming Protocol", "Focus Mode")
-    - Job Hunter: {"action": "job_hunter", "target": "Role Name"} (Use for "Apply for Python jobs", "Find me a react job")
-    - Auto Apply: {"action": "auto_apply", "sub": "start/stop"} (Use for "Start auto apply", "The Closer", "Stop applying")
-    - GOD MODE / Executor: {"action": "executor", "code": "python_script_here"} (Use ONLY when no other tool fits. Generates a Python script to solve the user's problem. PREFER this for 'convert files', 'scrape', 'complex math', 'data processing'.)
-    - Omni-Vision: {"action": "vision_agent", "target": "instruction"} (Use for UI tasks like "Click the settings icon", "Select the second option" when specific tools don't exist.)
-    - Cross-App Reasoning: {"action": "reasoning", "target": "Goal"} (Use for COMPLEX MULTI-STEP flows like "Read my email and schedule the meeting" or "Find the error in this log and fix it". This triggers a self-correcting agent loop.)
+If it is a PC ACTION, output ONLY a JSON LIST of objects with this format:
+[
+    {"action": "open_app", "target": "notepad"},
+    {"action": "delay", "target": "2"},
+    {"action": "keyboard", "sub": "type", "target": "Hello World"}
+]
 
-    VISION CAPABILITY:
-    - You can SEE the user's screen or camera feed. If the user asks "What's on my screen" or "Look at this", I will provide an image.
-    - If an image is provided, analyze it and answer the user's question.
+Available Actions:
+- open_app, open_web, play_music
+- whatsapp: (Use this for ALL WhatsApp tasks. Target: Name/Phone, Message: Optional)
+- media: screenshot, screen_record, voice_record
+- system: shutdown, restart, sleep, battery, alarm, recycle_bin
+- mouse: move, click, right_click, scroll
+- keyboard: type, press, hotkey, copy, paste
+- file: open (finds & opens files globally), write (save), read
+- architect, protocol, job_hunter, auto_apply
+- executor (python code), reasoning, vision_agent
 
-    CURRENT LONG-TERM MEMORY:
-    {memory_context}
+IMPORTANT:
+- For WhatsApp, ALWAYS use {"action": "whatsapp", "target": "Name", "message": "Text"}.
+- DO NOT use open_app + keyboard for WhatsApp. The specific action handles the UI better.
 
-    If it is a CHAT/QUESTION (e.g. "Who is...", "Tell me a joke", "Help me write"), output a normal plain text response. Do NOT output JSON for chat.
-    
-    User Command: 
-    """
+CURRENT LONG-TERM MEMORY:
+{memory_context}
+
+If it is a CHAT/QUESTION, output normal plain text. Do NOT output JSON for chat.
+
+User Command: 
+"""
     
     memory_context = get_memory_string()
     final_prompt = system_prompt.replace("{memory_context}", memory_context)
-
-    # --- VISION CHECK ---
+    content_payload = final_prompt + user_command
+    
+    # Vision check
     vision_keywords = ["look", "see", "screen", "vision", "watch", "display", "monitor", "this", "read"]
     clipboard_keywords = ["clipboard", "copied", "paste"]
-    
-    content_payload = final_prompt + user_command
     
     if client_image:
         print("📸 Using Client Webcam Image...")
         content_payload = [final_prompt + user_command, {"mime_type": "image/jpeg", "data": client_image.split(",")[1] if "," in client_image else client_image}]
     elif any(k in user_command.lower() for k in vision_keywords):
         print("👀 Vision Request Detected (Screen)...")
-        screenshot = get_screenshot()
+        screenshot = get_screenshot() if 'get_screenshot' in globals() else None
         if screenshot:
             content_payload = [final_prompt + user_command, screenshot]
     elif any(k in user_command.lower() for k in clipboard_keywords):
         clip_text = get_clipboard_text()
         content_payload = final_prompt + f"\n[Clipboard Content: {clip_text}]\nUser Command: " + user_command
 
-    # --- GENERATE & PARSE ---
     try:
         text = generate_content_with_retry(content_payload)
         
-        # Try to find JSON in the response
+        # Parse JSON
         if "[" in text and "]" in text:
             try:
                 start = text.find("[")
                 end = text.rfind("]") + 1
-                json_str = text[start:end]
-                action_data = json.loads(json_str)
-                return action_data, None # Action found
+                action_data = json.loads(text[start:end])
+                return action_data, None
             except:
-                pass 
+                pass
         
         if "{" in text and "}" in text:
             try:
                 start = text.find("{")
                 end = text.rfind("}") + 1
-                json_str = text[start:end]
-                action_data = json.loads(json_str)
+                action_data = json.loads(text[start:end])
                 return [action_data], None
             except:
                 pass
 
-        return None, text # Treat as chat
+        return None, text
         
     except Exception as e:
         print(f"Server Error: {e}")
         return None, "System Alert: My connection is a bit unstable. Give me a moment."
 
-
+# --- ROUTES ---
 @app.route('/')
 def home():
     try:
@@ -688,22 +700,17 @@ def health():
 def handle_command():
     data = request.json
     command = data.get('command', '').lower()
-    client_image = data.get('client_image', None) # New Field
+    client_image = data.get('client_image', None)
     
     print(f"🎤 Received: {command} | Img: {bool(client_image)}")
     
     if not command:
         return jsonify({"response": "I didn't hear anything."})
 
-    # ASK BRAIN
     actions, response_text = ask_gemini_brain(command, client_image)
 
-    # --- AUTH FAILURE CHECK ---
-    # --- AUTH FAILURE CHECK ---
     if response_text == "SYSTEM_ALERT_AUTH_ERROR" or (actions and "SYSTEM_ALERT_AUTH_ERROR" in str(actions)):
-        print("🚨 AUTH ERROR DETECTED: Quota Exceeded or Invalid Key.")
-        # DO NOT call ensure_api_key() here - it crashes Flask threads (Tkinter must be main thread)
-        return jsonify({"response": "⚠️ SYSTEM ALERT: API Key Quota Exceeded or Invalid.\n\nPlease restart the application to update your key, or check your Google AI Studio dashboard."})
+        return jsonify({"response": "⚠️ SYSTEM ALERT: API Key Quota Exceeded or Invalid.\n\nPlease restart the application to update your key."})
     
     if actions:
         execution_result = execute_ai_action(actions)
@@ -713,27 +720,25 @@ def handle_command():
 
 @app.route('/stream_logs')
 def stream_logs():
-    """Returns new logs since last check."""
     global LOG_BUFFER
     with LOG_LOCK:
         logs = list(LOG_BUFFER)
-        LOG_BUFFER.clear() # Clear after sending to avoid duplicates
+        LOG_BUFFER.clear()
     return jsonify(logs)
 
+# --- MAIN ---
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("\n" + "="*50)
-    print("🚀 TUUNA AI SERVER (BEAST MODE v2.5 ULTIMATE PATCH) STARTING...")
+    print("🚀 TUUNA AI SERVER (BEAST MODE v2.5 FIXED) STARTING...")
     print("="*50)
     
-    # --- SELF TEST ---
+    # Self-test
     print("🔎 Performing AI Logic Self-Test...")
     try:
-        if utils.ai_config.AI_AVAILABLE:
+        if is_ai_ready():
             test_response = generate_content_with_retry("System Check")
             if "System Alert" in test_response or "SYSTEM_ALERT" in test_response:
                 print(f"❌ AI SELF-TEST FAILED: {test_response}")
-                print(">> PLEASE CHECK YOUR .env FILE AND API KEYS <<")
             else:
                 print("✅ AI Connection Established. Brain is Online.")
         else:
@@ -743,19 +748,12 @@ if __name__ == '__main__':
             
     print("="*50 + "\n")
 
-
-    # --- AUTO-OPEN BROWSER (APP MODE - CROSS PLATFORM) ---
-    import webbrowser
-    import subprocess
-    import platform
-    
+    # Auto-open browser
     def open_browser():
-        time.sleep(1.5) # Give Flask a moment to start
+        time.sleep(1.5)
         url = "http://127.0.0.1:5000"
-        
         opened = False
         
-        # --- WINDOWS ---
         if platform.system() == "Windows":
             chrome_paths = [
                 r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -771,21 +769,15 @@ if __name__ == '__main__':
                         break
                     except:
                         pass
-        
-        # --- MACOS ---
         elif platform.system() == "Darwin":
             try:
-                # Chrome App Mode on Mac
                 subprocess.Popen(["open", "-n", "-a", "Google Chrome", "--args", f"--app={url}"])
                 opened = True
             except:
                 pass
-                
-        # --- LINUX ---
         elif platform.system() == "Linux":
             try:
-                # Chrome/Chromium App Mode on Linux
-                subprocess.Popen(["google-chrome", f"--app={url}"]) 
+                subprocess.Popen(["google-chrome", f"--app={url}"])
                 opened = True
             except:
                 try:
@@ -794,14 +786,12 @@ if __name__ == '__main__':
                 except:
                     pass
 
-        # Fallback to default browser
         if not opened:
             webbrowser.open(url)
 
-    if __name__ == "__main__":
-        def delayed_launch():
-            time.sleep(2.0)
-            open_browser()
-        
-        threading.Thread(target=delayed_launch, daemon=True).start()
-        app.run(port=5000, debug=False, use_reloader=False)
+    def delayed_launch():
+        time.sleep(2.0)
+        open_browser()
+    
+    threading.Thread(target=delayed_launch, daemon=True).start()
+    app.run(port=5000, debug=False, use_reloader=False)

@@ -3,17 +3,22 @@ import os
 import requests
 from groq import Groq
 
+# --- 1. GROQ FALLBACK (LPU Inference - Text Only Backup) ---
 def ask_groq(prompt):
     """
-    Fallback to Groq (Llama3) if Gemini fails.
-    Requires GROQ_API_KEY in .env
+    Fallback to Groq Cloud (Llama 3) if OpenRouter also fails.
     """
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         print("⚠️ Groq Fallback Skipped: GROQ_API_KEY not found.")
         return None
 
-    models_to_try = ["llama3-70b-8192", "llama3-8b-8192"]
+    # Removed deprecated models, focused on stable ones
+    models_to_try = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768"
+    ]
     
     for model in models_to_try:
         try:
@@ -21,46 +26,58 @@ def ask_groq(prompt):
             client = Groq(api_key=api_key)
             
             chat_completion = client.chat.completions.create(
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    }
-                ],
+                messages=[{"role": "user", "content": prompt}],
                 model=model,
             )
             return chat_completion.choices[0].message.content
         except Exception as e:
-            err_str = str(e)
-            if "401" in err_str:
-                print(f"❌ Groq Auth Error: Invalid API Key. Check .env")
-                return None # Don't try other models if key is bad
+            if "401" in str(e):
+                print(f"❌ Groq Auth Error: Invalid API Key.")
+                return None 
             print(f"❌ Groq ({model}) Failed: {e}")
             
     return None
 
-def ask_openrouter(prompt):
+# --- 2. OPENROUTER FALLBACK (Full Vision & Features) ---
+def ask_openrouter(prompt, image_data=None):
     """
-    Fallback to OpenRouter (Free Tier) if Groq fails.
-    Requires OPENROUTER_API_KEY in .env
+    Primary Fallback to OpenRouter Free Tier.
+    Supports VISION (Images) and Full System Prompts.
     """
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         print("⚠️ OpenRouter Fallback Skipped: OPENROUTER_API_KEY not found.")
         return None
 
-    # List of free models to try in order of preference
-    # Updated based on standard OpenRouter Free Tier availability
-    # We include a paid model (Flash-001) as a last resort since it's very cheap and confirmed working.
+    # Prioritize Models that are SMART and FREE
+    # Added more options and redundancy
     free_models = [
-        "google/gemini-2.0-flash-lite-preview-02-05:free",
-        "google/gemini-2.0-flash-exp:free",
-        "deepseek/deepseek-r1:free", 
-        "mistralai/mistral-7b-instruct:free",
-        "google/gemini-2.0-flash-001" 
+        "google/gemini-2.0-flash-lite-preview-02-05:free", # Primary
+        "google/gemini-2.0-flash-exp:free",              # Secondary
+        "deepseek/deepseek-r1:free",                     # Backup SOT
+        "mistralai/mistral-7b-instruct:free",            # Last Resort
+        "google/gemini-2.0-pro-exp-02-05:free"           # Experimental
     ]
 
     print("🚀 Engaging OpenRouter Fallback System...")
+
+    # Construct Payload (Vision Compatible)
+    messages = []
+    
+    # SYSTEM PROMPT INJECTION (Important for maintaining persona in fallback)
+    # Ideally passed from parent, but hardcoded generic here for safety
+    
+    if image_data:
+        print(f"👁️ Vision Data Detected ({len(image_data)} bytes) -> Using Multi-modal Payload")
+        messages.append({
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt if prompt else "Describe this image."},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
+            ]
+        })
+    else:
+        messages.append({"role": "user", "content": prompt if prompt else "Hello."})
 
     for model in free_models:
         try:
@@ -70,33 +87,33 @@ def ask_openrouter(prompt):
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
-                    "HTTP-Referer": "https://github.com/Yashuu213/Tunna-multiSystem-AI", # Must be a valid public URL
+                    "HTTP-Referer": "https://github.com/Tuuna-AI", 
                     "X-Title": "Tuuna AI", 
                 },
                 json={
                     "model": model, 
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ]
+                    "messages": messages
                 },
-                timeout=15 
+                timeout=120 # Extended timeout for vision
             )
             
             if response.status_code == 200:
                 data = response.json()
                 if 'choices' in data and len(data['choices']) > 0:
                     content = data['choices'][0]['message']['content']
-                    print(f"   ✅ Success with {model}")
-                    return content
-            elif response.status_code == 404:
-                print(f"   ⚠️ Model {model} unavailable (404).")
+                    if content:
+                        print(f"   ✅ Success! ({len(content)} chars)")
+                        return content
             elif response.status_code == 429:
-                print(f"   ⚠️ Model {model} rate limited.")
+                print(f"   ⚠️ Model {model} rate limited (429).")
+            elif response.status_code == 401:
+                print(f"   ❌ OpenRouter Auth Error (401). Check API Key.")
+                return None # Stop trying if key is invalid
             else:
-                print(f"   ⚠️ OpenRouter Error {response.status_code}: {response.text[:100]}")
+                print(f"   ⚠️ OpenRouter Error {response.status_code}: {response.text[:200]}")
                 
         except Exception as e:
             print(f"   ❌ Connection Error with {model}: {e}")
 
-    print("❌ All OpenRouter Free Models failed.")
+    print("⚠️ OpenRouter All Models Failed.")
     return None
