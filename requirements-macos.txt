@@ -16,7 +16,7 @@ pywhatkit==5.4
 pyperclip==1.9.0
 
 # Vision
-opencv-python==4.11.0
+opencv-python==4.10.0.84
 
 # System
 psutil==6.1.0

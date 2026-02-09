@@ -131,10 +131,11 @@ def ensure_api_key(force_update=False):
     print(f"📂 SECURITY: Loading Config from: {env_path}")
     load_dotenv(env_path)
     
-    gemini_key = os.getenv("GOOGLE_API_KEY", "")
-    groq_key = os.getenv("GROQ_API_KEY", "")
-    or_key = os.getenv("OPENROUTER_API_KEY", "")
+    gemini_key = os.getenv("GOOGLE_API_KEY", "").strip()
+    groq_key = os.getenv("GROQ_API_KEY", "").strip()
+    or_key = os.getenv("OPENROUTER_API_KEY", "").strip()
 
+    # Only skip popup if at least one valid (non-empty) key exists
     if (gemini_key or groq_key or or_key) and not force_update:
         return
 

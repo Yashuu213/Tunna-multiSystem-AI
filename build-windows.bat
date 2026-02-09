@@ -5,15 +5,15 @@ echo ========================================
 echo.
 
 REM Check if Python is installed
-python --version >nul 2>&1
+py -3.10 --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Python not found! Please install Python 3.10+ first.
+    echo [ERROR] Python 3.10 not found! Please install Python 3.10.
     pause
     exit /b 1
 )
 
 echo [1/4] Installing dependencies...
-pip install -r requirements-windows.txt
+py -3.10 -m pip install -r requirements-windows.txt
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to install dependencies!
     pause
@@ -27,7 +27,7 @@ if exist dist rmdir /s /q dist
 
 echo.
 echo [3/4] Building executable with PyInstaller...
-pyinstaller tuuna.spec --clean --noconfirm
+py -3.10 -m PyInstaller tuuna.spec --clean --noconfirm
 if %errorlevel% neq 0 (
     echo [ERROR] Build failed!
     pause
@@ -41,6 +41,8 @@ if not exist "dist\.env" (
     echo GOOGLE_API_KEY= >> dist\.env
     echo GROQ_API_KEY= >> dist\.env
     echo OPENROUTER_API_KEY= >> dist\.env
+    echo. >> dist\.env
+    echo # Leave keys empty - popup will appear on first run >> dist\.env
 )
 
 echo.
