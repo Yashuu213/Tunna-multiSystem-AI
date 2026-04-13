@@ -343,6 +343,58 @@ setInterval(async () => {
     } catch (e) { }
 }, 1000);
 
+// --- TELEMETRY LOOP ---
+async function fetchTelemetry() {
+    try {
+        const res = await fetch('/api/telemetry');
+        const data = await res.json();
+        
+        if (data.error) return;
+
+        // Vitals
+        document.getElementById('cpuBar').style.width = data.cpu + '%';
+        document.getElementById('ramBar').style.width = data.ram + '%';
+        
+        // App Radar
+        const radar = document.getElementById('appRadar');
+        radar.innerHTML = '';
+        if (data.apps.length > 0) {
+            data.apps.forEach(app => {
+                const item = document.createElement('div');
+                item.className = 'app-item';
+                item.innerText = app.toUpperCase();
+                radar.appendChild(item);
+            });
+        } else {
+            radar.innerHTML = '<div class="app-item dim">NO ECO-APPS</div>';
+        }
+
+    } catch (e) {}
+}
+setInterval(fetchTelemetry, 3000);
+
+// Neural Load Animation Sync
+function setNeuralLoad(active = false) {
+    const el = document.getElementById('neuralLoad');
+    if (active) {
+        el.style.opacity = '1';
+        el.style.width = '100%';
+        el.style.animationDuration = '0.5s';
+    } else {
+        el.style.opacity = '0.5';
+        el.style.width = '20%';
+        el.style.animationDuration = '2s';
+    }
+}
+
+// Update existing sendManualCommand to show load
+const originalSend = sendManualCommand;
+sendManualCommand = async function() {
+    setNeuralLoad(true);
+    await originalSend();
+    setTimeout(() => setNeuralLoad(false), 2000);
+}
+
 manualInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendManualCommand();
 });

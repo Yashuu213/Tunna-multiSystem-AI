@@ -33,6 +33,7 @@ import threading
 import webbrowser
 import subprocess
 import platform
+import psutil
 
 # --- CRITICAL FIX: macOS OpenSSL Crash ---
 os.environ["CRYPTOGRAPHY_OPENSSL_NO_LEGACY"] = "1"
@@ -778,6 +779,39 @@ def stream_logs():
 def companion_status():
     from utils.chat_agent import CHATTING_ACTIVE
     return jsonify({"active": CHATTING_ACTIVE})
+
+@app.route('/api/telemetry')
+def get_telemetry():
+    try:
+        cpu = psutil.cpu_percent()
+        ram = psutil.virtual_memory().percent
+        
+        battery = psutil.sensors_battery()
+        bat_percent = battery.percent if battery else 100
+        is_charging = battery.power_plugged if battery else True
+        
+        # Detected Ecosystem Apps
+        target_apps = ['WhatsApp', 'Chrome', 'Notepad', 'Code', 'Spotify', 'Discord']
+        active_apps = []
+        for p in psutil.process_iter(['name']):
+            try:
+                name = p.info['name'].lower()
+                for target in target_apps:
+                    if target.lower() in name and target not in active_apps:
+                        active_apps.append(target)
+            except: continue
+            if len(active_apps) >= 5: break
+
+        return jsonify({
+            "cpu": cpu,
+            "ram": ram,
+            "battery": bat_percent,
+            "charging": is_charging,
+            "apps": active_apps,
+            "uptime": int(time.time() - psutil.boot_time())
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # --- MAIN ---
 if __name__ == '__main__':

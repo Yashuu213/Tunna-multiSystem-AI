@@ -39,6 +39,38 @@
                 <input type="text" id="manualInput" placeholder="OVERRIDE COMMAND...">
                 <button class="action-btn" onclick="sendManualCommand()">EXE</button>
             </div>
+
+            <!-- BADA MODULES -->
+            <div class="tactical-modules">
+                <!-- System Vitals -->
+                <div class="module-block vitals">
+                    <span class="module-label">SYSTEM VITALS</span>
+                    <div class="stat-row">
+                        <span>CPU</span>
+                        <div class="bar-bg"><div id="cpuBar" class="bar-fill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="stat-row">
+                        <span>RAM</span>
+                        <div class="bar-bg"><div id="ramBar" class="bar-fill ram" style="width: 0%"></div></div>
+                    </div>
+                </div>
+
+                <!-- Neural Matrix -->
+                <div class="module-block">
+                    <span class="module-label">NEURAL MATRIX LOAD</span>
+                    <div class="bar-bg neural-matrix">
+                        <div id="neuralLoad" class="neural-fill"></div>
+                    </div>
+                </div>
+
+                <!-- App Radar -->
+                <div class="module-block">
+                    <span class="module-label">ACTIVE RADAR</span>
+                    <div id="appRadar" class="app-list">
+                        <div class="app-item dim">SEARCHING...</div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- CENTER: CORE & VISUALS -->
