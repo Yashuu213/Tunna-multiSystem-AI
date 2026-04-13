@@ -56,6 +56,16 @@ except ImportError:
     print("Warning: pyperclip not found")
     pyperclip = None
 
+# --- LOGGING SYSTEM ---
+LOG_BUFFER = []
+LOG_LOCK = threading.Lock()
+
+def add_log(log_type, msg):
+    with LOG_LOCK:
+        LOG_BUFFER.append({"type": log_type, "msg": msg})
+        if len(LOG_BUFFER) > 50:
+            LOG_BUFFER.pop(0)
+
 # --- UTILS IMPORTS ---
 try:
     from utils.ai_config import generate_content_with_retry, is_ai_ready, reload_keys, MODEL_POOL
@@ -71,8 +81,9 @@ try:
     )
     from utils.beast_mode import (
         execute_python_code, execute_architect, execute_protocol,
-        execute_job_hunter, execute_cognitive_chain
+        execute_job_hunter, execute_cognitive_chain, set_log_callback
     )
+    set_log_callback(add_log)
     print("✅ All Systems Loaded.")
 except Exception as e:
     print(f"\n{'!'*50}\n❌ FATAL IMPORT ERROR: {e}\n{'!'*50}")
@@ -85,10 +96,6 @@ if os.name == 'nt':
         import winshell
     except ImportError:
         pass
-
-# --- LOGGING SYSTEM ---
-LOG_BUFFER = []
-LOG_LOCK = threading.Lock()
 
 # --- PYINSTALLER RESOURCE PATH ---
 def resource_path(relative_path):
@@ -694,6 +701,7 @@ User Command:
         
     except Exception as e:
         print(f"Server Error: {e}")
+        add_log("error", str(e))
         return None, "System Alert: My connection is a bit unstable. Give me a moment."
 
 # --- ROUTES ---

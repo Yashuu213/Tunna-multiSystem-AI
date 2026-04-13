@@ -13,7 +13,17 @@ from .ai_config import generate_content_with_retry
 from .vision import get_screenshot
 from .system_tools import APP_PATHS, run_terminal_command, perform_web_search, find_and_open_file
 
-# Lazy Import: PyAutoGUI moved inside functions to prevent Linux CI crash
+# Global Callback for logging to UI
+LOG_CALLBACK = None
+
+def set_log_callback(func):
+    global LOG_CALLBACK
+    LOG_CALLBACK = func
+
+def _log(log_type, msg):
+    if LOG_CALLBACK:
+        LOG_CALLBACK(log_type, msg)
+    print(f"[{log_type.upper()}] {msg}")
 
 
 def execute_python_code(code_str):
@@ -245,44 +255,51 @@ def execute_job_hunter(role):
 
 def execute_cognitive_chain(goal):
     """
-    Experimental: Multi-Step Reasoning Loop (ReAct).
-    Allows the agent to Look -> Think -> Act -> Loop.
+    Advanced Multi-Step Reasoning Loop (ReAct v2.0). 
+    Features: Reflection, Log Analysis, and Resolution-Aware Clicking.
     """
+    from .vision import get_dpi_scaling
     try:
         print(f"🧠 Cognitive Chain: Starting task '{goal}'...")
         history = []
-        max_steps = 10
+        max_steps = 15 # Increased for complex tasks
         
         for step in range(max_steps):
-            print(f"🧠 Step {step+1}/{max_steps}...")
+            print(f"🧠 [REASONING] Step {step+1}/{max_steps}...")
             
             # 1. Capture State (Screen + History)
             screenshot = get_screenshot()
             
-            # 2. Ask Brain
+            # 2. Construct Expert Brain Prompt
             prompt = f"""
-            You are in a Cognitive Reasoning Loop.
+            You are the TUUNA COGNITIVE CORE.
             GOAL: {goal}
             
-            HISTORY:
-            {json.dumps(history, indent=2)}
+            PREVIOUS ACTIONS & RESULTS:
+            {json.dumps(history[-3:], indent=2) if history else "Start of task."}
             
-            Analyze the screen and the history. Decide the NEXT single step.
+            INSTRUCTIONS:
+            - Analyze the screen and history.
+            - If something failed, check the logs or try a different approach.
+            - REFLECTION: Why did the previous step succeed/fail? What is missing?
             
             AVAILABLE TOOLS:
-            - LOOK: Describe what you see on the screen (useful to read emails, errors).
-            - OPEN: Open an app or website. Target: "notepad", "google.com".
-            - CLICK: Click on a text/icon. Target: "Send Button", "File menu".
-            - TYPE: Type text. Target: "Hello world".
+            - LOOK: Describe physical screen state.
+            - OPEN: Open app/URL. Target: "notepad", "https://google.com".
+            - CLICK: Click text/icon. Target: "Login Button".
+            - TYPE: Type text. Target: "Data to enter".
             - SCROLL: Scroll down.
-            - SEARCH: Google search. Target: "Query".
-            - FINISH: Task is done. Target: "Summary of what you did".
+            - SEARCH: DDG Search. Target: "Query".
+            - READ_LOG: Read system crash logs. Target: "CRASH_LOG.txt".
+            - TERMINAL: Run shell command. Target: "dir", "pip list".
+            - FINISH: Task done. Target: "Final summary".
             
             OUTPUT JSON ONLY:
             {{
-                "thought": "I need to open the email app to find the meeting time.",
-                "tool": "OPEN",
-                "target": "outlook"
+                "reflection": "Last click didn't change the screen, likely missed the button.",
+                "thought": "I will try to search for the specific menu item instead.",
+                "tool": "SEARCH",
+                "target": "..."
             }}
             """
             
@@ -292,23 +309,34 @@ def execute_cognitive_chain(goal):
                 end = response.rfind("}") + 1
                 action_data = json.loads(response[start:end])
                 
+                reflection = action_data.get("reflection", "No reflection.")
                 thought = action_data.get("thought", "")
                 tool = action_data.get("tool", "").upper()
                 target = action_data.get("target", "")
                 
-                print(f"🤔 Thought: {thought}")
-                print(f"🛠️ Tool: {tool} -> {target}")
+                _log("reflection", reflection)
+                _log("thought", thought)
+                _log("action", f"{tool} -> {target}")
                 
                 result = "Executed."
                 
-                # 3. Execute Tool
+                # 3. Execution Engine
                 if tool == "FINISH":
-                    return f"Reference Chain Completed: {target}"
-                    
+                    return f"Mission Accomplished: {target}"
+                
+                elif tool == "READ_LOG":
+                    log_path = os.path.join(os.getcwd(), target)
+                    if os.path.exists(log_path):
+                        with open(log_path, 'r', encoding='utf-8') as f:
+                            result = f"LOG CONTENT:\n{f.read()[-1000:]}" # Last 1000 chars
+                    else:
+                        result = "Log file not found."
+                        
+                elif tool == "TERMINAL":
+                    result = run_terminal_command(target)
+
                 elif tool == "LOOK":
-                    # The prompt already sees the screen, but this specific step 
-                    # implies we want to record the observation into history.
-                    result = f"Visual Observation: {thought}" # The LLM's thought usually contains the observation
+                    result = f"Observation Summary: {thought}"
                     
                 elif tool == "OPEN":
                     if target.startswith("http"):
@@ -318,61 +346,73 @@ def execute_cognitive_chain(goal):
                          subprocess.Popen(APP_PATHS[target], shell=True)
                          result = f"Opened App: {target}"
                     else:
-                        import pyautogui # Lazy Import
+                        import pyautogui
                         pyautogui.press('win')
                         time.sleep(0.5)
                         pyautogui.write(target)
                         time.sleep(0.5)
                         pyautogui.press('enter')
-                        result = f"Opened: {target}"
-                    time.sleep(2) # Wait for load
+                        result = f"Launched: {target}"
+                    time.sleep(3) # Wait for UI
                     
                 elif tool == "CLICK":
-                    # Mini Vision-Click logic
+                    import pyautogui
                     width, height = pyautogui.size()
+                    # Re-normalize for physical coordinates the LLM sees
+                    scale_x, scale_y = get_dpi_scaling()
+                    phys_w, phys_h = int(width * scale_x), int(height * scale_y)
+                    
                     click_prompt = f"""
-                    Find the center coordinates [x, y] of the UI element described as: "{target}".
-                    Image Size: {width}x{height}
-                    OUTPUT JSON: {{"x": 123, "y": 456}}
+                    UI Target: "{target}"
+                    Resolution: {phys_w}x{phys_h}
+                    Return center [x, y] of "{target}".
+                    JSON: {{"x": 10, "y": 20}}
                     """
-                    coords_json = generate_content_with_retry([click_prompt, screenshot])
+                    coords_res = generate_content_with_retry([click_prompt, screenshot])
                     try:
-                        c_start = coords_json.find("{")
-                        c_end = coords_json.rfind("}") + 1
-                        coords = json.loads(coords_json[c_start:c_end])
-                        x, y = int(coords['x']), int(coords['y'])
-                        import pyautogui # Lazy Import
-                        pyautogui.moveTo(x, y, duration=0.5)
+                        c_start = coords_res.find("{")
+                        c_end = coords_res.rfind("}") + 1
+                        coords = json.loads(coords_res[c_start:c_end])
+                        # Normalize back to logical for PyAutoGUI
+                        x = int(coords['x'] / scale_x)
+                        y = int(coords['y'] / scale_y)
+                        pyautogui.moveTo(x, y, duration=0.6)
                         pyautogui.click()
-                        result = f"Clicked '{target}' at ({x}, {y})"
+                        result = f"Clicked '{target}' at logical ({x}, {y})"
                     except:
-                        result = f"Could not find '{target}' on screen."
+                        result = f"Target '{target}' not found on screen."
 
                 elif tool == "TYPE":
                     pyperclip.copy(target)
-                    import pyautogui # Lazy Import
+                    import pyautogui
                     pyautogui.hotkey('ctrl', 'v')
-                    result = f"Typed: {target}"
+                    result = f"Input typed: {target}"
                     
                 elif tool == "SCROLL":
-                    import pyautogui # Lazy Import
-                    pyautogui.scroll(-500)
-                    result = "Scrolled Down"
+                    import pyautogui
+                    pyautogui.scroll(-600)
+                    result = "Moved view down."
                     
                 elif tool == "SEARCH":
                     result = perform_web_search(target)
                     
                 else:
-                    result = "Unknown Tool"
+                    result = f"Unknown core module: {tool}"
 
-                history.append({"step": step+1, "thought": thought, "tool": tool, "result": result})
-                time.sleep(1)
+                history.append({
+                    "step": step+1, 
+                    "thought": thought, 
+                    "reflection": reflection,
+                    "tool": tool, 
+                    "result": result
+                })
+                time.sleep(1.5)
                 
             except Exception as e:
-                print(f"Chain Error: {e}")
+                print(f"Chain Stall: {e}")
                 history.append({"step": step+1, "error": str(e)})
         
-        return "Cognitive Chain timed out (Max Steps Reached)."
+        return "Cognitive limit reached. Goal partially completed or timed out."
         
     except Exception as e:
-        return f"Cognitive Chain Failed: {e}"
+        return f"Core Intelligence Failure: {e}"

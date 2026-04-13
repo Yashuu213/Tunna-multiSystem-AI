@@ -1,28 +1,59 @@
-# Python
+# --- GLOBAL ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- PYTHON ---
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Environments
-.env
-.venv
+*.so
+.Python
 env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
 
-# IDES
+# --- PROJECT SPECIFIC ---
+.env
+CRASH_LOG.txt
+memory.json
+*.avi
+*.wav
+*.mp4
+*.png
+*.jpg
+*.jpeg
+god_mode_task.py
+scratch_*.py
+
+# --- IDEs ---
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Build and Dist
-build/
-dist/
+# --- BUILD/DIST ---
 *.spec
-
-# Logs
-*.log
-
-# PyInstaller
-*.manifest
+dist/
+build/
+MANIFEST

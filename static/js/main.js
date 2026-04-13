@@ -264,6 +264,8 @@ function sendManualCommand() {
 
 // --- HEX GRID LOGIC ---
 const statusOverlay = document.getElementById('statusOverlay');
+const cognitiveLogs = document.getElementById('cognitiveLogs');
+const visionTarget = document.getElementById('visionTarget');
 
 function activateHex(moduleId, duration = 800) {
     const el = document.getElementById(moduleId);
@@ -271,6 +273,16 @@ function activateHex(moduleId, duration = 800) {
         el.classList.add('active');
         setTimeout(() => el.classList.remove('active'), duration);
     }
+}
+
+function showVisionTarget(x, y) {
+    if (!visionTarget) return;
+    visionTarget.style.left = x + 'px';
+    visionTarget.style.top = y + 'px';
+    visionTarget.style.display = 'block';
+    setTimeout(() => {
+        visionTarget.style.display = 'none';
+    }, 2000);
 }
 
 // Polling for Actions/Thoughts
@@ -281,28 +293,41 @@ setInterval(async () => {
 
         if (logs.length > 0) {
             logs.forEach(log => {
-                // Trigger Hex based on log type
-                if (log.type === 'thought') {
+                const item = document.createElement('div');
+                item.className = 'thought-item';
+                
+                if (log.type === 'reflection') {
+                    item.classList.add('reflection');
+                    item.innerText = "💡 " + log.msg;
                     activateHex('mod_cortex', 1500);
-                    if (statusOverlay) statusOverlay.innerText = "CORTEX: " + log.msg;
-                    // CORE
-                    if (window.neuralCore) window.neuralCore.setState('THINKING');
+                } else if (log.type === 'thought') {
+                    item.innerText = "🤔 " + log.msg;
+                    activateHex('mod_cortex', 1000);
+                } else if (log.type === 'action') {
+                    item.innerText = "🛠️ " + log.msg;
+                    activateHex('mod_uplink', 1000);
+                    // Mini Parse for Vision Target
+                    if (log.msg.includes('logical (')) {
+                        const coords = log.msg.match(/\((\d+), (\d+)\)/);
+                        if (coords) showVisionTarget(coords[1], coords[2]);
+                    }
+                } else {
+                    item.innerText = `[${log.type}] ${log.msg}`;
                 }
-                if (log.type === 'action') {
-                    activateHex('mod_uplink', 1500);
-                    activateHex('mod_code', 1500);
-                    if (statusOverlay) statusOverlay.innerText = "UPLINK: " + log.msg;
+
+                if (cognitiveLogs) {
+                    cognitiveLogs.appendChild(item);
+                    cognitiveLogs.scrollTop = cognitiveLogs.scrollHeight;
                 }
-                if (log.type === 'error') {
-                    activateHex('mod_secure', 1500);
-                    // Hide raw error from UI, just show alert
-                    if (statusOverlay) statusOverlay.innerText = "SYSTEM ALERT: CHECK CONSOLE";
-                    console.error("BACKEND ERROR:", log.msg);
+
+                // Global Status
+                if (statusOverlay) {
+                    statusOverlay.innerText = log.msg.substring(0, 50).toUpperCase() + "...";
                 }
             });
         }
     } catch (e) { }
-}, 800);
+}, 1000);
 
 manualInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendManualCommand();
@@ -320,12 +345,8 @@ async function initVision() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        header.innerText = " REC"; // Space for dot
-        header.removeAttribute('style'); // Use CSS class styles
+        header.innerText = " REC";
         container.classList.add('active');
-
-
-        // Trigger Hex
         activateHex('mod_vision', 2000);
     } catch (e) {
         console.error("Camera Access Denied", e);

@@ -11,6 +11,23 @@ from .ai_config import generate_content_with_retry
 APPLY_LOOP_ACTIVE = False
 APPLY_THREAD = None
 
+def get_dpi_scaling():
+    """Detects Windows DPI scaling to normalize coordinates."""
+    if os.name != 'nt': return 1.0, 1.0
+    try:
+        import ctypes
+        import pyautogui
+        user32 = ctypes.windll.user32
+        physical_width = user32.GetSystemMetrics(0)
+        physical_height = user32.GetSystemMetrics(1)
+        logical_width, logical_height = pyautogui.size()
+        
+        scale_x = physical_width / logical_width
+        scale_y = physical_height / logical_height
+        return scale_x, scale_y
+    except:
+        return 1.0, 1.0
+
 def get_screenshot():
     """Captures screen and returns a PIL Image."""
     try:
@@ -88,11 +105,16 @@ def omni_vision_action(instruction):
             coords = json.loads(text[start:end])
             
             if "x" in coords and "y" in coords:
-                x, y = int(coords['x']), int(coords['y'])
+                x_phys, y_phys = int(coords['x']), int(coords['y'])
+                
+                # Normalize to Logical Coordinates
+                scale_x, scale_y = get_dpi_scaling()
+                x, y = int(x_phys / scale_x), int(y_phys / scale_y)
+                
                 import pyautogui # Lazy Import
                 pyautogui.moveTo(x, y, duration=0.5)
                 pyautogui.click()
-                return f"Omni-Vision: Clicked at ({x}, {y})"
+                return f"Omni-Vision: Clicked at ({x}, {y}) [Scaled from {x_phys}, {y_phys}]"
             return "Omni-Vision: Could not locate target."
         return "Omni-Vision: AI did not return coordinates."
         
@@ -139,7 +161,12 @@ def auto_apply_loop_thread():
                     coords = json.loads(text[start:end])
                     
                     if "x" in coords and "y" in coords:
-                        x, y = int(coords['x']), int(coords['y'])
+                        x_phys, y_phys = int(coords['x']), int(coords['y'])
+                        
+                        # Normalize to Logical Coordinates
+                        scale_x, scale_y = get_dpi_scaling()
+                        x, y = int(x_phys / scale_x), int(y_phys / scale_y)
+                        
                         print(f"🤖 The Closer: FOUND TARGET! Clicking button at ({x}, {y})...")
                         import pyautogui # Lazy Import
                         pyautogui.moveTo(x, y, duration=0.5)
