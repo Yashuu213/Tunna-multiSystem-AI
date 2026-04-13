@@ -1,0 +1,115 @@
+name: Tuuna AI - Cross Platform Build
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_upload:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            req_file: requirements-windows.txt
+            build_cmd: python -m PyInstaller tuuna.spec --clean --noconfirm
+            artifact_name: Tuuna_Windows.exe
+            asset_path: dist/TuunaAI.exe
+          
+          - os: ubuntu-latest
+            req_file: requirements-linux.txt
+            build_cmd: python -m PyInstaller tuuna.spec --clean --noconfirm
+            artifact_name: Tuuna_Linux_Binary
+            asset_path: dist/TuunaAI
+          
+          - os: macos-latest
+            req_file: requirements-macos.txt
+            build_cmd: python -m PyInstaller tuuna.spec --clean --noconfirm
+            artifact_name: Tuuna_MacOS.app.zip
+            asset_path: dist/TuunaAI.app
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: ${{ matrix.req_file }}
+
+      # --- INSTALL DEPENDENCIES (OS SPECIFIC) ---
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ${{ matrix.req_file }}
+          pip install setuptools pyinstaller
+
+      - name: Install Extra Linux Deps
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-glx libxkbcommon-x11-0 python3-tk
+
+      - name: Install Extra Windows Deps
+        if: matrix.os == 'windows-latest'
+        run: pip install pywin32 winshell
+
+      # --- BUILD EXECUTABLE ---
+      - name: Build Executable
+        run: ${{ matrix.build_cmd }}
+
+      # --- PREPARE ARTIFACT ---
+      - name: Rename Artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        run: mv dist/TuunaAI.exe dist/Tuuna_Windows.exe
+
+      - name: Rename Artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: mv dist/TuunaAI dist/Tuuna_Linux_Binary
+
+      - name: Zip Artifact (Mac)
+        if: matrix.os == 'macos-latest'
+        run: |
+           cd dist
+           zip -r Tuuna_MacOS.app.zip TuunaAI.app
+
+      # --- UPLOAD TEMP ARTIFACT ---
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: dist/*
+          retention-days: 1
+
+  release:
+    name: Create Release
+    needs: build_and_upload
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: List Files
+        run: ls -R release_assets
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release_assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

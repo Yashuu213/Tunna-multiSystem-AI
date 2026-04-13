@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUUNA /// SYSTEM OVERRIDE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <!-- Background Elements -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="noise"></div>
+
+    <!-- Main HUD Interface -->
+    <div class="hud-container">
+
+        <!-- LEFT FLANK: COMMS -->
+        <section class="panel left-panel">
+            <div class="panel-header">
+                <span class="panel-title">/// COMMS LOG</span>
+                <div class="panel-deco"></div>
+            </div>
+
+            <div id="chatLog" class="chat-stream">
+                <div class="msg system">
+                    <span class="ts">[INIT]</span> SYSTEM ONLINE. AWAITING INPUT.
+                </div>
+            </div>
+
+            <div class="input-zone">
+                <input type="text" id="manualInput" placeholder="OVERRIDE COMMAND...">
+                <button class="action-btn" onclick="sendManualCommand()">EXE</button>
+            </div>
+        </section>
+
+        <!-- CENTER: CORE & VISUALS -->
+        <section class="center-stage">
+            <div class="header-unit">
+                <div class="brand">TUUNA <span class="mark">AI</span></div>
+                <div id="status" class="status-readout">STANDBY MODE</div>
+            </div>
+
+            <!-- Neural Nexus Core 2.0 -->
+            <div class="core-wrapper">
+                <div class="encircle ring-outer"></div>
+                <canvas id="neuralCanvas"></canvas>
+            </div>
+
+
+            <div class="voice-controls">
+                <button id="startBtn" class="big-trigger" onclick="toggleListening()">
+                    <i class="fas fa-microphone"></i>
+                    <span class="btn-label">ENGAGE AUDIO</span>
+                </button>
+                <div class="voice-selector">
+                    <select id="voiceSelect" onchange="testVoice()"></select>
+                </div>
+                <button class="btn-sm" onclick="toggleHelp()">CMD LIST</button>
+            </div>
+        </section>
+
+        <!-- RIGHT FLANK: DATA STREAM -->
+        <!-- RIGHT FLANK: ACTIVE MODULES -->
+        <section class="panel right-panel">
+            <div class="panel-header">
+                <span class="panel-title">/// MODULE OVERWATCH</span>
+                <div class="live-tag">ACTIVE</div>
+            </div>
+
+            <!-- New Hexagon Hive -->
+            <!-- LIVE VISION MODULE -->
+            <div class="vision-container">
+                <div class="vision-header">NO SIGNAL</div>
+                <video id="liveFeed" autoplay playsinline muted></video>
+                <div class="vision-overlay"></div>
+            </div>
+
+            <div class="hex-grid-container">
+                <div class="hex-row">
+                    <div class="hex-wrapper" id="mod_cortex">
+                        <div class="hex-shape"></div>
+                        <div class="hex-icon"><i class="fas fa-brain"></i></div>
+                        <div class="hex-label">CORTEX</div>
+                    </div>
+                    <div class="hex-wrapper" id="mod_uplink">
+                        <div class="hex-shape"></div>
+                        <div class="hex-icon"><i class="fas fa-globe"></i></div>
+                        <div class="hex-label">UPLINK</div>
+                    </div>
+                </div>
+                <div class="hex-row offset">
+                    <div class="hex-wrapper" id="mod_code">
+                        <div class="hex-shape"></div>
+                        <div class="hex-icon"><i class="fas fa-code"></i></div>
+                        <div class="hex-label">CODE</div>
+                    </div>
+                    <div class="hex-wrapper" id="mod_synth">
+                        <div class="hex-shape"></div>
+                        <div class="hex-icon"><i class="fas fa-wave-square"></i></div>
+                        <div class="hex-label">SYNTH</div>
+                    </div>
+                    <div class="hex-wrapper" id="mod_vision">
+                        <div class="hex-shape"></div>
+                        <div class="hex-icon"><i class="fas fa-eye"></i></div>
+                        <div class="hex-label">VISION</div>
+                    </div>
+                </div>
+                <div class="hex-row">
+                    <div class="hex-wrapper" id="mod_secure">
+                        <div class="hex-shape active-green"></div> <!-- Always active -->
+                        <div class="hex-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="hex-label">SECURE</div>
+                    </div>
+                    <div class="hex-wrapper" id="mod_memory">
+                        <div class="hex-shape active-dim"></div>
+                        <div class="hex-icon"><i class="fas fa-database"></i></div>
+                        <div class="hex-label">MEMORY</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini Log Overlay (Optional, sleek) -->
+            <div id="statusOverlay" class="status-overlay">
+                WAITING FOR SIGNALS...
+            </div>
+        </section>
+
+
+    </div>
+
+    <!-- Help Overlay (Hidden) -->
+    <div id="helpModal" class="modal-backdrop">
+        <div class="modal-frame">
+            <h2>COMMAND PROTOCOLS</h2>
+            <ul class="cmd-list">
+                <li><span>"Open [App/Web]"</span> -> Execute Launch</li>
+                <li><span>"Write Code to..."</span> -> Ghost Writer Mode</li>
+                <li><span>"Reasoning: Read Email..."</span> -> Cognitive Loop</li>
+                <li><span>"System: Status"</span> -> Hardware Report</li>
+            </ul>
+            <button class="close-btn" onclick="toggleHelp()">DISMISS</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/liquid_core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
