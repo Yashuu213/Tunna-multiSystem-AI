@@ -288,6 +288,7 @@ function showVisionTarget(x, y) {
 // Polling for Actions/Thoughts
 setInterval(async () => {
     try {
+        // 1. Logs
         const res = await fetch('/stream_logs');
         const logs = await res.json();
 
@@ -306,7 +307,6 @@ setInterval(async () => {
                 } else if (log.type === 'action') {
                     item.innerText = "🛠️ " + log.msg;
                     activateHex('mod_uplink', 1000);
-                    // Mini Parse for Vision Target
                     if (log.msg.includes('logical (')) {
                         const coords = log.msg.match(/\((\d+), (\d+)\)/);
                         if (coords) showVisionTarget(coords[1], coords[2]);
@@ -320,12 +320,26 @@ setInterval(async () => {
                     cognitiveLogs.scrollTop = cognitiveLogs.scrollHeight;
                 }
 
-                // Global Status
                 if (statusOverlay) {
                     statusOverlay.innerText = log.msg.substring(0, 50).toUpperCase() + "...";
                 }
             });
         }
+
+        // 2. Companion Status
+        const compRes = await fetch('/companion_status');
+        const compData = await compRes.json();
+        const compEl = document.getElementById('companionStatus');
+        const compText = compEl.querySelector('.status-text');
+
+        if (compData.active) {
+            compEl.classList.add('active');
+            compText.innerText = "LINK ACTIVE // COMPANION MODE";
+        } else {
+            compEl.classList.remove('active');
+            compText.innerText = "COMPANION: OFFLINE";
+        }
+
     } catch (e) { }
 }, 1000);
 

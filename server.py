@@ -83,6 +83,7 @@ try:
         execute_python_code, execute_architect, execute_protocol,
         execute_job_hunter, execute_cognitive_chain, set_log_callback
     )
+    from utils.chat_agent import start_chat_mode, stop_chat_mode
     set_log_callback(add_log)
     print("✅ All Systems Loaded.")
 except Exception as e:
@@ -275,6 +276,7 @@ reload_keys()
 # --- ACTION HANDLER (FIXED - SINGLE BLOCK) ---
 def execute_ai_action(action_data):
     """Executes the JSON action(s) returned by Gemini."""
+    global pyautogui, pyperclip, pywhatkit
     
     if isinstance(action_data, list):
         results = []
@@ -590,6 +592,31 @@ os.startfile(filename)
     elif action == "vision_agent":
         return omni_vision_action(target)
 
+    elif action == "companion":
+        sub = action_data.get("sub", "start")
+        if sub == "stop":
+            return stop_chat_mode()
+        
+        # Pre-flight: Ensure App is Open and Searching
+        print(f"🎬 Initializing Companion for '{target}'...")
+        pyautogui.press('win')
+        time.sleep(0.5)
+        pyautogui.write('whatsapp')
+        time.sleep(0.5)
+        pyautogui.press('enter')
+        time.sleep(4) # Wait for load
+        
+        # Robust Search Shortcut (WhatsApp Desktop)
+        pyautogui.hotkey('ctrl', 'f')
+        time.sleep(0.5)
+        pyautogui.write(target, interval=0.1)
+        time.sleep(1)
+        pyautogui.press('enter')
+        time.sleep(2)
+        
+        # Start persistence
+        return start_chat_mode(target)
+
     return "Action completed."
 
 # --- SYSTEM PROMPT ---
@@ -626,6 +653,7 @@ If it is a PC ACTION, output ONLY a JSON LIST of objects with this format:
 Available Actions:
 - open_app, open_web, play_music
 - whatsapp: (Use this for ALL WhatsApp tasks. Target: Name/Phone, Message: Optional)
+- companion: (Use this for PERSISTENT chatting. It stays active and replies autonomously. Sub: start/stop, Target: Person name)
 - media: screenshot, screen_record, voice_record
 - system: shutdown, restart, sleep, battery, alarm, recycle_bin
 - mouse: move, click, right_click, scroll
@@ -745,6 +773,11 @@ def stream_logs():
         logs = list(LOG_BUFFER)
         LOG_BUFFER.clear()
     return jsonify(logs)
+
+@app.route('/companion_status')
+def companion_status():
+    from utils.chat_agent import CHATTING_ACTIVE
+    return jsonify({"active": CHATTING_ACTIVE})
 
 # --- MAIN ---
 if __name__ == '__main__':

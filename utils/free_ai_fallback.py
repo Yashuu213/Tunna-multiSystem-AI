@@ -83,19 +83,19 @@ def ask_openrouter(prompt, image_data=None):
         print("⚠️ OpenRouter Fallback Skipped: OPENROUTER_API_KEY not found.")
         return None
 
-    # CONFIRMED FREE MODELS (Verified Live)
+    # CONFIRMED FREE MODELS (Verified 2026 survivors)
     # 1. Vision Candidates (Try these first if image exists)
     vision_models = [
-        "google/gemini-2.0-pro-exp-02-05:free", 
-        "qwen/qwen-vl-plus:free"
+        "google/gemini-2.0-flash-exp:free", 
+        "google/gemini-2.0-pro-exp-02-05:free",
+        "qwen/qwen-2-vl-7b-instruct:free"
     ]
     
     # 2. Text Powerhouses (Verified Survivors)
     text_models = [
-        "google/gemini-2.0-pro-exp-02-05:free",
+        "arcee-ai/trinity-large-preview:free", 
         "meta-llama/llama-3.3-70b-instruct:free",
-        "deepseek/deepseek-r1:free",
-        "arcee-ai/trinity-large-preview:free"
+        "google/gemini-2.0-flash-exp:free"
     ]
 
     print("🚀 Engaging OpenRouter Fallback System...")
@@ -106,7 +106,7 @@ def ask_openrouter(prompt, image_data=None):
         messages = [{
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt if prompt else "Describe this image."},
+                {"type": "text", "text": prompt if prompt else "Analyze this screenshot."},
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
             ]
         }]

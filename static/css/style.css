@@ -679,6 +679,49 @@ video#liveFeed {
     color: var(--hud-red);
 }
 
+/* --- COMPANION STATUS --- */
+.companion-status {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 255, 65, 0.05);
+    padding: 10px 15px;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 4px;
+    font-family: var(--font-header);
+    font-size: 0.7rem;
+    color: var(--hud-green);
+    letter-spacing: 1px;
+    z-index: 100;
+}
+
+.companion-status.active {
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+}
+
+.status-led {
+    width: 8px;
+    height: 8px;
+    background: #333;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.companion-status.active .status-led {
+    background: var(--hud-green);
+    box-shadow: 0 0 10px var(--hud-green);
+    animation: blink-green 1.5s infinite;
+}
+
+@keyframes blink-green {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 /* Modal */
 .modal-backdrop {
     display: none;
